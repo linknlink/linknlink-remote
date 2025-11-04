@@ -1,5 +1,5 @@
 {
-  "name": "Home Assistant Node addon",
-  "url": "https://github.com/lajoskvcs/hassio-nodejs-addon-template",
-  "maintainer": "Lajos Kovács <https://github.com/lajoskvcs>"
+  "name": "LinknLink Remote Add-ons Repository",
+  "url": "https://github.com/Acmen0102/linknlink-remote",
+  "maintainer": "Acmen0102 <https://github.com/Acmen0102>"
 }
