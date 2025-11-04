@@ -89,6 +89,7 @@ jobs:
             BUILD_FROM=ghcr.io/hassio-addons/base:14.2.0
           cache-from: type=gha,scope=${{ matrix.arch.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.arch.name }}
+          outputs: type=image,push=true
         timeout-minutes: 30
 
   manifest:
