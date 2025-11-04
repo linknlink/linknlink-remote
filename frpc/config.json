@@ -13,7 +13,6 @@
     "armv7",
     "i386"
   ],
-  "image": "ghcr.io/acmen0102/linknlink-remote-frpc:{arch}",
   "options": {
     "server_addr": "",
     "server_port": 7000,
