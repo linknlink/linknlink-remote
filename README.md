@@ -130,6 +130,16 @@ homeassistant:
 - 确认网络连接正常（需要下载依赖资源）
 - 查看 Supervisor 日志
 
+### Docker 镜像拉取超时/失败
+
+如果遇到类似 `Client.Timeout exceeded while awaiting headers` 或 `404 Not Found` 错误，通常是网络连接问题：
+
+- **国内用户**：推荐配置 Docker 镜像加速器
+  - 详细配置方法请查看：[DOCKER_MIRROR_SETUP.md](DOCKER_MIRROR_SETUP.md)
+  - 常用镜像加速器：中科大、网易、百度云、阿里云
+- **使用代理的用户**：需要在 Home Assistant 服务器上配置 Docker 代理
+  - 参考 [DOCKER_MIRROR_SETUP.md](DOCKER_MIRROR_SETUP.md) 中的方法 3
+
 ## 贡献
 
 欢迎提交 Issue 和 Pull Request！
