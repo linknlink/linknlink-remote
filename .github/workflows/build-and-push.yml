@@ -148,22 +148,62 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
 
       - name: Create and push multi-arch manifest
+        continue-on-error: true
         run: |
-          docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.tag }} \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:amd64 \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:aarch64 \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:armhf \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:armv7 \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:i386
-          docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.tag }}
+          # 函数：创建 manifest
+          create_manifest() {
+            local TAG=$1
+            echo "Creating manifest for tag: $TAG"
+            
+            # 删除旧的 manifest（如果存在）
+            docker manifest rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG 2>/dev/null || true
+            
+            # 构建 manifest 参数列表
+            ARCHS=("amd64" "aarch64" "armhf" "armv7" "i386")
+            MANIFEST_CMD="docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG"
+            VALID_ARCHS=0
+            
+            for arch in "${ARCHS[@]}"; do
+              # 检查镜像是否存在
+              if docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$arch >/dev/null 2>&1; then
+                # 检查是否是 manifest list（通过检查是否有 "manifests" 字段）
+                MANIFEST_OUTPUT=$(docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$arch 2>/dev/null || echo "")
+                if echo "$MANIFEST_OUTPUT" | grep -q '"manifests"'; then
+                  echo "Warning: $arch is already a manifest list, using version-tagged image instead"
+                  # 使用带版本标签的镜像
+                  if docker manifest inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-$arch >/dev/null 2>&1; then
+                    MANIFEST_CMD="$MANIFEST_CMD --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-$arch"
+                    VALID_ARCHS=$((VALID_ARCHS + 1))
+                  fi
+                else
+                  MANIFEST_CMD="$MANIFEST_CMD --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$arch"
+                  VALID_ARCHS=$((VALID_ARCHS + 1))
+                  echo "Added $arch to manifest"
+                fi
+              fi
+            done
+            
+            if [ $VALID_ARCHS -gt 0 ]; then
+              echo "Executing: $MANIFEST_CMD"
+              eval $MANIFEST_CMD
+              docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$TAG
+              echo "Successfully created manifest for $TAG with $VALID_ARCHS architectures"
+              return 0
+            else
+              echo "Error: No valid architecture-specific images found"
+              return 1
+            fi
+          }
           
-          docker manifest create ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }} \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:amd64 \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:aarch64 \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:armhf \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:armv7 \
-            --amend ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:i386
-          docker manifest push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}
+          # 创建 latest 标签的 manifest
+          create_manifest "${{ steps.tags.outputs.tag }}" || echo "Failed to create manifest for ${{ steps.tags.outputs.tag }}, continuing..."
+          
+          # 创建版本标签的 manifest（如果版本标签不同）
+          if [ "${{ steps.tags.outputs.tag }}" != "${{ steps.version.outputs.version }}" ]; then
+            create_manifest "${{ steps.version.outputs.version }}" || echo "Failed to create manifest for ${{ steps.version.outputs.version }}, continuing..."
+          fi
+          
+          echo "Note: Multi-arch manifests are optional. Architecture-specific tags (amd64, aarch64, etc.) are sufficient for Home Assistant."
 
       - name: Summary
         run: |
