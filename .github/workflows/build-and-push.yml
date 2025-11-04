@@ -7,13 +7,23 @@ on:
     paths:
       - 'frpc/Dockerfile'
       - 'frpc/run.sh'
+      - 'frpc/config.json'
       - '.github/workflows/build-and-push.yml'
   pull_request:
     branches:
       - main
+    paths:
+      - 'frpc/Dockerfile'
+      - 'frpc/run.sh'
+      - 'frpc/config.json'
   release:
     types: [created]
   workflow_dispatch:
+    inputs:
+      skip_architectures:
+        description: 'Skip specific architectures (comma-separated, e.g. aarch64,armhf)'
+        required: false
+        type: string
 
 env:
   REGISTRY: ghcr.io
@@ -22,11 +32,13 @@ env:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     permissions:
       contents: read
       packages: write
 
     strategy:
+      fail-fast: false
       matrix:
         arch:
           - name: amd64
@@ -53,6 +65,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
 
       - name: Extract version from config.json
         id: version
@@ -89,10 +102,12 @@ jobs:
             BUILD_FROM=ghcr.io/hassio-addons/base:14.2.0
           cache-from: type=gha,scope=${{ matrix.arch.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.arch.name }}
+        timeout-minutes: 30
 
   manifest:
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: github.event_name != 'pull_request'
     permissions:
       contents: read
@@ -111,6 +126,7 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: false
 
       - name: Extract version from config.json
         id: version
