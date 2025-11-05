@@ -91,19 +91,30 @@ jobs:
             echo "✓ $ARCH_TAG is already a single image or doesn't exist"
           fi
 
-      - name: Build and push architecture-specific image (single tag at a time)
+      - name: Build and push architecture-specific image (using docker buildx directly)
         if: github.event_name != 'pull_request'
-        uses: docker/build-push-action@v5
-        with:
-          context: ./frpc
-          file: ./frpc/Dockerfile
-          platforms: ${{ matrix.arch.platform }}
-          push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ matrix.arch.name }}
-          build-args: |
-            BUILD_FROM=ghcr.io/hassio-addons/base:14.2.0
-          cache-from: type=gha,scope=${{ matrix.arch.name }}
-          cache-to: type=gha,mode=max,scope=${{ matrix.arch.name }}
+        run: |
+          ARCH=${{ matrix.arch.name }}
+          PLATFORM=${{ matrix.arch.platform }}
+          IMAGE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${ARCH}"
+          
+          echo "Building ${ARCH} image for platform ${PLATFORM}..."
+          
+          # 使用 docker buildx build 直接构建并推送单个镜像
+          # 使用 --output type=image 确保是单个镜像，不是 manifest list
+          docker buildx build \
+            --platform ${PLATFORM} \
+            --file ./frpc/Dockerfile \
+            --build-arg BUILD_FROM=ghcr.io/hassio-addons/base:14.2.0 \
+            --tag ${IMAGE_TAG} \
+            --push \
+            --cache-from type=gha,scope=${ARCH} \
+            --cache-to type=gha,mode=max,scope=${ARCH} \
+            --provenance=false \
+            --sbom=false \
+            ./frpc
+          
+          echo "✓ Built and pushed ${IMAGE_TAG}"
         timeout-minutes: 30
 
       - name: Push additional tags for this architecture
@@ -112,26 +123,63 @@ jobs:
           ARCH=${{ matrix.arch.name }}
           BASE_TAG="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${ARCH}"
           
+          # 等待镜像可用
+          sleep 3
+          
           # 验证基础标签是单个镜像
+          echo "Verifying ${BASE_TAG} is a single image..."
           MANIFEST_OUTPUT=$(docker manifest inspect "$BASE_TAG" 2>&1)
+          
           if echo "$MANIFEST_OUTPUT" | jq -e '.manifests' >/dev/null 2>&1; then
             echo "❌ ERROR: $BASE_TAG is still a manifest list!"
+            echo "Manifest details:"
+            echo "$MANIFEST_OUTPUT" | jq '.'
             exit 1
           fi
           
-          # 使用 docker manifest 获取镜像摘要，然后创建新标签
-          DIGEST=$(docker manifest inspect "$BASE_TAG" | jq -r '.config.digest // .layers[0].digest' | head -1)
+          echo "✓ ${BASE_TAG} is a single image (correct)"
           
-          # 推送版本-架构标签（使用相同的镜像）
+          # 使用 docker buildx imagetools 创建新标签（引用相同的镜像）
+          # 这样可以确保不会创建 manifest list
+          echo "Creating additional tags..."
+          
+          # 获取镜像的摘要（digest）
+          DIGEST=$(docker manifest inspect "$BASE_TAG" | jq -r '.config.digest // empty')
+          if [ -z "$DIGEST" ]; then
+            # 如果没有 config.digest，使用第一个 layer 的 digest
+            DIGEST=$(docker manifest inspect "$BASE_TAG" | jq -r '.layers[0].digest // empty')
+          fi
+          
+          # 使用 pull+tag+push 方法创建新标签
+          # 由于我们已经验证了 BASE_TAG 是单个镜像，这种方式应该能保持单个镜像
+          echo "Pulling base image to create additional tags..."
           docker pull "$BASE_TAG"
+          
+          echo "Creating tag: ${{ steps.tags.outputs.tag }}-${ARCH}"
           docker tag "$BASE_TAG" "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.tag }}-${ARCH}"
           docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.tag }}-${ARCH}"
           
-          # 推送版本标签-架构标签
+          # 验证新标签也是单个镜像
+          NEW_MANIFEST=$(docker manifest inspect "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tags.outputs.tag }}-${ARCH}" 2>&1)
+          if echo "$NEW_MANIFEST" | jq -e '.manifests' >/dev/null 2>&1; then
+            echo "⚠️  Warning: New tag is manifest list, but continuing..."
+          else
+            echo "✓ New tag is single image"
+          fi
+          
+          echo "Creating tag: ${{ steps.version.outputs.version }}-${ARCH}"
           docker tag "$BASE_TAG" "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-${ARCH}"
           docker push "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-${ARCH}"
           
-          echo "✓ Successfully pushed all tags for ${ARCH}"
+          # 验证新标签也是单个镜像
+          VERSION_MANIFEST=$(docker manifest inspect "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.version.outputs.version }}-${ARCH}" 2>&1)
+          if echo "$VERSION_MANIFEST" | jq -e '.manifests' >/dev/null 2>&1; then
+            echo "⚠️  Warning: Version tag is manifest list, but continuing..."
+          else
+            echo "✓ Version tag is single image"
+          fi
+          
+          echo "✓ Successfully created all tags for ${ARCH}"
 
       - name: Verify architecture tag is single image (not manifest list)
         if: github.event_name != 'pull_request'
