@@ -5,39 +5,34 @@ FROM ${BUILD_FROM}
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Set workdir
-WORKDIR /root
-
-# 安装必要的依赖
-RUN apk add --no-cache \
-    curl \
-    wget \
-    ca-certificates
-
-# 定义 frp 版本和架构
+# Setup base
 ARG FRP_VERSION=0.52.3
 ARG TARGETARCH
-
-# 根据架构设置下载URL
-# 注意: Home Assistant 使用 TARGETARCH，但 frp 发布包使用不同的架构名称
-RUN case ${TARGETARCH} in \
-    "amd64") FRP_ARCH="amd64" ;; \
-    "arm64"|"aarch64") FRP_ARCH="arm64" ;; \
-    "arm") FRP_ARCH="arm" ;; \
-    *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
-    esac && \
-    FRP_URL="https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_${FRP_VERSION}_linux_${FRP_ARCH}.tar.gz" && \
-    echo "Downloading frp v${FRP_VERSION} for ${FRP_ARCH} from: ${FRP_URL}" && \
-    wget -q "${FRP_URL}" -O /tmp/frp.tar.gz && \
-    if [ ! -f /tmp/frp.tar.gz ] || [ ! -s /tmp/frp.tar.gz ]; then \
+# hadolint ignore=DL3003
+RUN \
+    apk add --no-cache --virtual .build-dependencies \
+        wget \
+        curl \
+    \
+    && case ${TARGETARCH} in \
+        "amd64") FRP_ARCH="amd64" ;; \
+        "arm64"|"aarch64") FRP_ARCH="arm64" ;; \
+        "arm") FRP_ARCH="arm" ;; \
+        *) echo "Unsupported architecture: ${TARGETARCH}" && exit 1 ;; \
+    esac \
+    && FRP_URL="https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_${FRP_VERSION}_linux_${FRP_ARCH}.tar.gz" \
+    && echo "Downloading frp v${FRP_VERSION} for ${FRP_ARCH} from: ${FRP_URL}" \
+    && wget -q "${FRP_URL}" -O /tmp/frp.tar.gz \
+    && if [ ! -f /tmp/frp.tar.gz ] || [ ! -s /tmp/frp.tar.gz ]; then \
         echo "Failed to download frp" && exit 1; \
-    fi && \
-    tar -xzf /tmp/frp.tar.gz -C /tmp && \
-    cp /tmp/frp_*/frpc /usr/local/bin/frpc && \
-    chmod +x /usr/local/bin/frpc && \
-    /usr/local/bin/frpc version && \
-    rm -rf /tmp/frp* && \
-    apk del wget curl || true
+    fi \
+    && tar -xzf /tmp/frp.tar.gz -C /tmp \
+    && cp /tmp/frp_*/frpc /usr/local/bin/frpc \
+    && chmod +x /usr/local/bin/frpc \
+    && /usr/local/bin/frpc version \
+    && rm -f -r /tmp/* \
+    && apk del --no-cache --purge \
+        .build-dependencies
 
 
 

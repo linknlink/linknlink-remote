@@ -6,6 +6,7 @@
   "url": "https://github.com/Acmen0102/linknlink-remote",
   "startup": "services",
   "boot": "auto",
+  "init": false,
   "arch": [
     "aarch64",
     "amd64",
@@ -21,7 +22,18 @@
     "proxy_name": "homeassistant_proxy",
     "protocol": "tcp",
     "log_level": "info",
-    "log_max_days": 3
+    "log_max_days": 3,
+    "authentication": {
+      "enabled": false,
+      "account": "",
+      "password": ""
+    },
+    "third_party": {
+      "enabled": false,
+      "provider": "",
+      "api_key": "",
+      "api_secret": ""
+    }
   },
   "schema": {
     "server_addr": "str",
@@ -32,8 +44,19 @@
     "remote_port": "int(1,65535)",
     "proxy_name": "str",
     "protocol": "match(tcp|udp|http|https|stcp|sudp|xtcp)",
-    "log_level": "match(trace|debug|info|warn|error)",
-    "log_max_days": "int(1,30)"
+    "log_level": "list(trace|debug|info|warn|error)?",
+    "log_max_days": "int(1,30)?",
+    "authentication": {
+      "enabled": "bool",
+      "account": "str?",
+      "password": "password?"
+    },
+    "third_party": {
+      "enabled": "bool",
+      "provider": "str?",
+      "api_key": "str?",
+      "api_secret": "password?"
+    }
   },
   "ports": {},
   "ports_description": {}

@@ -24,6 +24,16 @@ PROTOCOL=$(bashio::config 'protocol')
 LOG_LEVEL=$(bashio::config 'log_level')
 LOG_MAX_DAYS=$(bashio::config 'log_max_days')
 
+# 读取预留配置（后续实现）
+AUTH_ENABLED=$(bashio::config 'authentication.enabled' false)
+AUTH_ACCOUNT=$(bashio::config 'authentication.account' "")
+AUTH_PASSWORD=$(bashio::config 'authentication.password' "")
+
+THIRD_PARTY_ENABLED=$(bashio::config 'third_party.enabled' false)
+THIRD_PARTY_PROVIDER=$(bashio::config 'third_party.provider' "")
+THIRD_PARTY_API_KEY=$(bashio::config 'third_party.api_key' "")
+THIRD_PARTY_API_SECRET=$(bashio::config 'third_party.api_secret' "")
+
 # 验证必需参数
 if [ -z "$SERVER_ADDR" ]; then
     log "错误: server_addr 不能为空"
@@ -96,6 +106,15 @@ log "本地地址: ${LOCAL_IP}:${LOCAL_PORT}"
 log "远程端口: ${REMOTE_PORT}"
 log "代理名称: ${PROXY_NAME}"
 log "协议类型: ${PROTOCOL}"
+
+# 显示预留配置状态（后续实现具体功能）
+if [ "$AUTH_ENABLED" = "true" ]; then
+    log "提示: 私有账号登录功能已启用（功能开发中）"
+fi
+
+if [ "$THIRD_PARTY_ENABLED" = "true" ]; then
+    log "提示: 第三方服务功能已启用（功能开发中）"
+fi
 
 # 启动 frpc
 exec /usr/local/bin/frpc -c "$CONFIG_FILE"

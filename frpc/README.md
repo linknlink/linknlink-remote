@@ -9,7 +9,7 @@
 - 📝 支持多种协议（TCP、UDP、HTTP、HTTPS、STCP、SUDP、XTCP）
 - 🔐 支持 Token 认证
 - 📊 可配置日志级别和保留天数
-- 🏗️ 支持多种架构（aarch64、amd64、armhf、armv7、i386）
+- 🏗️ 支持多种架构（aarch64、amd64、armv7）
 
 ## 安装方法
 
@@ -48,32 +48,48 @@
 - **log_level**: 日志级别（默认：`info`，可选：`trace`、`debug`、`info`、`warn`、`error`）
 - **log_max_days**: 日志保留天数（默认：`3`，范围：1-30）
 
-#### 配置示例
+#### 高级配置（预留功能）
+
+以下配置项为预留功能，将在后续版本中实现：
+
+- **authentication**: 私有账号登录配置
+  - **enabled**: 是否启用私有账号登录（默认：`false`）
+  - **account**: 账号名称
+  - **password**: 账号密码
+
+- **third_party**: 第三方服务配置
+  - **enabled**: 是否启用第三方服务（默认：`false`）
+  - **provider**: 第三方服务提供商
+  - **api_key**: API 密钥
+  - **api_secret**: API 密钥（加密存储）
+
+### 4. 启动
+
+1. 配置完成后，点击 **配置** 标签页底部的 **保存**
+2. 切换到 **信息** 标签页
+3. 点击 **启动** 按钮
+4. 查看 **日志** 标签页确认运行状态
+
+## 使用示例
+
+### 基本配置示例
 
 ```json
 {
   "server_addr": "frp.example.com",
   "server_port": 7000,
-  "token": "your-token-here",
+  "token": "your_token_here",
   "local_ip": "127.0.0.1",
-  "local_port": 8123,
+  "local_port": 22,
   "remote_port": 6000,
-  "proxy_name": "homeassistant",
+  "proxy_name": "homeassistant_ssh",
   "protocol": "tcp",
   "log_level": "info",
   "log_max_days": 7
 }
 ```
 
-### 4. 启动
-
-1. 配置完成后，点击 **启动** 标签页
-2. 点击 **启动** 按钮
-3. 查看日志确认连接状态
-
-## 使用场景
-
-### 场景 1: 映射 Home Assistant Web 界面
+### HTTP 协议配置示例
 
 ```json
 {
@@ -81,84 +97,104 @@
   "server_port": 7000,
   "local_ip": "127.0.0.1",
   "local_port": 8123,
-  "remote_port": 6000,
+  "remote_port": 8080,
   "proxy_name": "homeassistant_web",
-  "protocol": "tcp"
+  "protocol": "http",
+  "log_level": "info"
 }
 ```
 
-访问方式：`frp.example.com:6000`
+## 工作原理
 
-### 场景 2: 映射 SSH 服务
+FRPC Client Add-on 的工作原理：
 
-```json
-{
-  "server_addr": "frp.example.com",
-  "server_port": 7000,
-  "local_ip": "127.0.0.1",
-  "local_port": 22,
-  "remote_port": 6001,
-  "proxy_name": "ssh",
-  "protocol": "tcp"
-}
-```
+1. **安装阶段**：从 GitHub 下载对应架构的 frpc 二进制文件
+2. **配置阶段**：根据配置参数生成 frpc 配置文件（TOML 格式）
+3. **运行阶段**：启动 frpc 客户端，建立到 FRP 服务器的连接
+4. **监控阶段**：持续监控连接状态，自动重连（如果连接断开）
 
-SSH 连接：`ssh user@frp.example.com -p 6001`
+## 日志
 
-### 场景 3: HTTP 反向代理
+### 查看日志
 
-```json
-{
-  "server_addr": "frp.example.com",
-  "server_port": 7000,
-  "local_ip": "127.0.0.1",
-  "local_port": 8080,
-  "remote_port": 80,
-  "proxy_name": "webapp",
-  "protocol": "http"
-}
-```
+1. 在 Add-on 详情页面，点击 **日志** 标签页
+2. 日志会实时显示 frpc 的运行状态和连接信息
+3. 可以查看以下信息：
+   - 连接状态
+   - 错误信息
+   - 代理配置信息
 
-访问方式：`http://webapp.frp.example.com`
+### 日志级别
 
-## 日志查看
-
-- 日志文件位置：`/config/frpc.log`
-- 在 Home Assistant 中查看：**启动** 标签页 → **查看日志**
+- **trace**: 最详细的日志，包含所有调试信息
+- **debug**: 调试信息
+- **info**: 一般信息（推荐）
+- **warn**: 警告信息
+- **error**: 错误信息
 
 ## 故障排除
 
 ### 连接失败
 
+如果无法连接到 FRP 服务器：
+
 1. 检查 `server_addr` 和 `server_port` 是否正确
-2. 确认 FRP 服务器正在运行
-3. 检查防火墙设置
-4. 如果使用 token，确认 token 是否正确
+2. 确认网络连接正常
+3. 检查 FRP 服务器是否运行
+4. 查看日志中的错误信息
+
+### Token 认证失败
+
+如果启用了 Token 认证但连接失败：
+
+1. 确认 `token` 配置正确
+2. 检查服务器端的 Token 设置
+3. 查看日志中的认证错误信息
 
 ### 端口冲突
 
-- 确保 `remote_port` 在 FRP 服务器上未被占用
-- 检查 `local_port` 对应的服务是否正在运行
+如果遇到端口冲突：
 
-### 权限问题
+1. 检查 `remote_port` 是否已被占用
+2. 尝试使用其他端口号
+3. 确认服务器端允许使用该端口
 
-- 确保 Add-on 有足够的权限访问本地服务
-- 检查 `/config` 目录的写入权限
+### 构建失败
 
-## 技术支持
+如果 Add-on 安装时构建失败：
 
-- 问题反馈：在 GitHub 仓库提交 Issue
-- FRP 官方文档：https://gofrp.org/docs/
+1. 检查网络连接（需要访问 GitHub 和 Docker Hub）
+2. 查看 [故障排除文档](../../TROUBLESHOOTING.md)
+3. 确认系统架构是否支持（aarch64、amd64、armv7）
 
-## 许可证
+## 支持的架构
 
-本项目遵循相应的开源许可证。
+- **aarch64**: ARM 64位架构（如树莓派 4）
+- **amd64**: x86_64 架构（大多数 PC 和服务器）
+- **armv7**: ARM 32位架构（较旧的 ARM 设备）
 
 ## 更新日志
 
 ### v1.0.0
 
-- 初始版本
-- 支持基本的 TCP/UDP/HTTP/HTTPS 协议
-- 支持 Token 认证
-- 可配置日志级别
+- 初始版本发布
+- 支持基本的 FRP 客户端功能
+- 支持多种协议和架构
+- 预留私有账号登录和第三方服务接口
+
+## 技术支持
+
+如果遇到问题，可以：
+
+1. 查看本文档的故障排除部分
+2. 查看 [故障排除文档](../../TROUBLESHOOTING.md)
+3. 在 GitHub 仓库提交 Issue
+
+## 许可证
+
+请查看仓库根目录的许可证文件。
+
+## 致谢
+
+- [FRP 项目](https://github.com/fatedier/frp) - 提供反向代理解决方案
+- Home Assistant 社区 - 提供 Add-on 开发支持
