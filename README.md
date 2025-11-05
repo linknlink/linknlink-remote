@@ -130,11 +130,21 @@ homeassistant:
 
 ### Docker 镜像构建超时/失败
 
-如果遇到构建超时或网络连接问题：
+如果遇到类似 `Client.Timeout exceeded while awaiting headers` 的错误，通常是网络连接问题。
 
-- **国内用户**：推荐配置 Docker 镜像加速器
-  - 常用镜像加速器：中科大、网易、百度云、阿里云
-- **使用代理的用户**：需要在 Home Assistant 服务器上配置 Docker 代理
+**快速解决方案：**
+
+1. **国内用户**：配置 Docker 镜像加速器（强烈推荐）
+   - 详细步骤请查看：[TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+   - 常用镜像加速器：中科大、网易、百度云、阿里云
+
+2. **使用代理**：在 Home Assistant 系统上配置 Docker 代理
+   - 详细步骤请查看：[TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+
+3. **检查网络**：确保可以访问 GitHub 和 Docker Hub
+   - 测试命令：`curl -I https://registry-1.docker.io/v2/`
+
+详细故障排除指南请查看：[TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 ## 贡献
 
