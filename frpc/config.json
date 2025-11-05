@@ -4,6 +4,7 @@
   "slug": "frpc",
   "description": "FRP Client (frpc) add-on for Home Assistant. Establish reverse proxy connections to FRP servers.",
   "url": "https://github.com/Acmen0102/linknlink-remote",
+  "image": "ghcr.io/acmen0102/linknlink-remote-frpc:{arch}",
   "startup": "services",
   "boot": "auto",
   "init": false,
