@@ -33,7 +33,7 @@ RUN \
     && tar -xzf /tmp/frp.tar.gz -C /tmp \
     && cp /tmp/frp_*/frpc /usr/local/bin/frpc \
     && chmod +x /usr/local/bin/frpc \
-    && /usr/local/bin/frpc version \
+    && /usr/local/bin/frpc --version \
     && rm -f -r /tmp/* \
     && apk del --no-cache --purge \
         .build-dependencies
