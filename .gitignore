@@ -1,0 +1,20 @@
+# GitHub Token (不要提交 token 文件)
+*.token
+*.secret
+.env
+.env.local
+
+# 临时文件
+*.tmp
+*.bak
+*~
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
