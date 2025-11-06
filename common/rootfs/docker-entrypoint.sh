@@ -8,7 +8,7 @@ SERVER_PORT=$(bashio::config 'server_port')
 TOKEN=$(bashio::config 'token')
 LOCAL_IP=$(bashio::config 'local_ip')
 LOCAL_PORT=$(bashio::config 'local_port')
-REMOTE_PORT=$(bashio::config 'remote_port')
+SECRET_KEY=$(bashio::config 'secret_key')
 PROXY_NAME=$(bashio::config 'proxy_name')
 PROTOCOL=$(bashio::config 'protocol')
 LOG_LEVEL=$(bashio::config 'log_level')
@@ -69,7 +69,7 @@ name = "${PROXY_NAME}"
 type = "${PROTOCOL}"
 localIP = "${LOCAL_IP}"
 localPort = ${LOCAL_PORT}
-remotePort = ${REMOTE_PORT}
+secretKey = ${SECRET_KEY}
 EOF
 
 # 如果是 HTTP/HTTPS 协议，添加额外配置
@@ -93,7 +93,6 @@ fi
 bashio::log.info "Starting FRPC..."
 bashio::log.info "Server address: ${SERVER_ADDR}:${SERVER_PORT}"
 bashio::log.info "Local address: ${LOCAL_IP}:${LOCAL_PORT}"
-bashio::log.info "Remote port: ${REMOTE_PORT}"
 bashio::log.info "Proxy name: ${PROXY_NAME}"
 bashio::log.info "Protocol: ${PROTOCOL}"
 
