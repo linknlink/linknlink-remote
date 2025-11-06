@@ -14,16 +14,17 @@
   ],
   "options": {
     "authentication": {
-      "account": "",
+      "email": "",
       "password": ""
     }
   },
   "schema": {
     "authentication": {
-      "account": "str",
+      "email": "str",
       "password": "password"
     }
   },
+  "host_network": true,
   "ports": {},
   "ports_description": {},
   "image": "ghcr.io/acmen0102/linknlink-remote-frpc-{arch}"

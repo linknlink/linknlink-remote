@@ -3,12 +3,12 @@
 bashio::log.info "Preparing to start FRPC Client..."
 
 # 从配置中读取账号密码
-AUTH_ACCOUNT=$(bashio::config 'authentication.account' "")
+AUTH_ACCOUNT=$(bashio::config 'authentication.email' "")
 AUTH_PASSWORD=$(bashio::config 'authentication.password' "")
 
 # 验证必需参数
 if [ -z "$AUTH_ACCOUNT" ]; then
-    bashio::exit.nok "authentication.account cannot be empty"
+    bashio::exit.nok "authentication.email cannot be empty"
 fi
 
 if [ -z "$AUTH_PASSWORD" ]; then
@@ -76,6 +76,9 @@ get_device_id() {
             bashio::log.warning "UUID generator not available, using generated ID: $device_id"
         fi
     fi
+    
+    # 将 device_id 转换为小写
+    device_id=$(echo "$device_id" | tr '[:upper:]' '[:lower:]')
     
     echo "$device_id"
 }
@@ -249,7 +252,7 @@ register_frpc_proxy() {
     local proxy_json='[{"serviceName":"HomeAssistant","localPort":8123,"bindPort":38123,"link":true}]'
     
     # 构造请求数据
-    local server_url="https://admin.linklinkiot.com/frpserver/api/proxy"
+    local server_url="https://euadmin.linklinkiot.com/frpserver/api/proxy"
     local json_data="{\"did\":\"$device_id\",\"name\":\"hassio\",\"type\":1,\"account\":\"$account\",\"proxyList\":$proxy_json}"
     
     bashio::log.debug "Registration request: $json_data"
@@ -302,45 +305,20 @@ register_frpc_proxy() {
     # 将响应保存为配置文件
     echo "$content" > "$CONFIG_FILE"
     
-    # 获取宿主机IP地址并替换配置文件中的127.0.0.1
-    local host_ip=""
-    # 方法1: 尝试通过默认网关获取宿主机IP（最可靠的方法）
-    if command -v ip &> /dev/null; then
-        host_ip=$(ip route | awk '/default/ {print $3}' | head -n1)
-    fi
+    # 在 host 网络模式下，容器直接使用宿主机的网络命名空间
+    # 127.0.0.1 就是宿主机本身，可以直接访问宿主机的服务（如 8123 端口）
+    # 因此不需要替换 127.0.0.1
+    # 
+    # 如果将来需要支持桥接网络模式，可以使用以下逻辑获取宿主机IP：
+    # local host_ip=""
+    # if command -v ip &> /dev/null; then
+    #     host_ip=$(ip route | awk '/default/ {print $3}' | head -n1)
+    # fi
+    # if [ -n "$host_ip" ] && [ "$host_ip" != "" ]; then
+    #     sed -i "s/127\.0\.0\.1/$host_ip/g" "$CONFIG_FILE"
+    # fi
     
-    # 方法2: 如果方法1失败，尝试使用host.docker.internal（在某些Docker环境中可用）
-    if [ -z "$host_ip" ] || [ "$host_ip" = "" ]; then
-        if command -v getent &> /dev/null; then
-            host_ip=$(getent hosts host.docker.internal | awk '{print $1}' | head -n1)
-        fi
-    fi
-    
-    # 方法3: 如果前两种方法都失败，尝试从网络接口获取
-    if [ -z "$host_ip" ] || [ "$host_ip" = "" ]; then
-        # 获取默认网关IP（通常是宿主机IP）
-        if [ -f /proc/net/route ]; then
-            host_ip=$(awk '/^00000000/ {print $3}' /proc/net/route | head -n1)
-            # 将十六进制IP转换为点分十进制格式
-            if [ -n "$host_ip" ]; then
-                host_ip=$(printf "%d.%d.%d.%d" \
-                    $((0x${host_ip:6:2})) \
-                    $((0x${host_ip:4:2})) \
-                    $((0x${host_ip:2:2})) \
-                    $((0x${host_ip:0:2})) 2>/dev/null)
-            fi
-        fi
-    fi
-    
-    # 如果成功获取到宿主机IP，替换配置文件中的127.0.0.1
-    if [ -n "$host_ip" ] && [ "$host_ip" != "" ]; then
-        bashio::log.info "Detected host IP: $host_ip, replacing 127.0.0.1 in config file"
-        # 使用sed替换配置文件中的127.0.0.1为宿主机IP
-        sed -i "s/127\.0\.0\.1/$host_ip/g" "$CONFIG_FILE"
-        bashio::log.info "Successfully replaced 127.0.0.1 with $host_ip in configuration file"
-    else
-        bashio::log.warning "Could not detect host IP address, keeping 127.0.0.1 in config file"
-    fi
+    bashio::log.info "Using host network mode - 127.0.0.1 refers to the host machine"
     
     bashio::log.info "FRPC configuration file generated successfully: $CONFIG_FILE"
 }
