@@ -1,6 +1,6 @@
 {
   "name": "FRPC Client",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "slug": "frpc",
   "description": {
     "en": "Enable remote access to Home Assistant through the LinknLink platform. Only requires account credentials to automatically complete device registration and proxy configuration.",
