@@ -1,12 +1,8 @@
 {
   "name": "FRPC Client",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "slug": "frpc",
-  "description": {
-    "en": "Enable remote access to Home Assistant through the LinknLink platform. Only requires account credentials to automatically complete device registration and proxy configuration.",
-    "zh-Hans": "通过 LinknLink 平台实现 Home Assistant 的远程访问。只需提供账号凭据，即可自动完成设备注册和代理配置。",
-    "zh_hans": "通过 LinknLink 平台实现 Home Assistant 的远程访问。只需提供账号凭据，即可自动完成设备注册和代理配置。"
-  },
+  "description": "Enable remote access to Home Assistant through the LinknLink platform. Only requires account credentials to automatically complete device registration and proxy configuration.",
   "url": "https://github.com/acmen0102/linknlink-remote",
   "startup": "services",
   "boot": "auto",
