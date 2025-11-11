@@ -1,6 +1,6 @@
 {
   "name": "FRPC Client",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "slug": "frpc",
   "description": "Enable remote access to Home Assistant through the LinknLink platform. 通过 LinknLink 平台实现 Home Assistant 的远程访问。",
   "url": "https://github.com/acmen0102/linknlink-remote",
