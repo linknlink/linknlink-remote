@@ -16,13 +16,15 @@
     "authentication": {
       "email": "",
       "password": ""
-    }
+    },
+    "log_level": "info"
   },
   "schema": {
     "authentication": {
       "email": "str",
       "password": "password"
-    }
+    },
+    "log_level": "match(trace|debug|info|notice|warning|error|fatal)"
   },
   "ports": {},
   "ports_description": {},

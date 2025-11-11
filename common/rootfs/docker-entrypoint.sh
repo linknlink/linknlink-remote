@@ -1,5 +1,8 @@
 #!/usr/bin/env bashio
 
+LOG_LEVEL=$(bashio::config 'log_level' 'info')
+bashio::log.level "${LOG_LEVEL}"
+
 bashio::log.info "Preparing to start FRPC Client..."
 
 # 从配置中读取账号密码

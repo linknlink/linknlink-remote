@@ -58,6 +58,14 @@ authentication:
 
 > **注意**：如果您还没有 LinknLink 账号，请使用LinknLink APP注册开通。
 
+### 可选配置
+
+```yaml
+log_level: info
+```
+
+- **log_level**: 控制加载项输出的日志详细程度，可选值包括 `trace`、`debug`、`info`、`notice`、`warning`、`error`、`fatal`，默认值为 `info`。
+
 ### 启动 Add-on
 
 1. 填写配置后，点击 **保存**

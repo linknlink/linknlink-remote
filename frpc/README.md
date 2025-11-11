@@ -58,6 +58,14 @@ authentication:
 
 > **Note**: If you don't have a LinknLink account yet, please register using the LinknLink APP.
 
+### Optional Configuration
+
+```yaml
+log_level: info
+```
+
+- **log_level**: Controls the verbosity of add-on logs. Available values: `trace`, `debug`, `info`, `notice`, `warning`, `error`, `fatal`. Defaults to `info`.
+
 ### Start Add-on
 
 1. After filling in the configuration, click **Save**
