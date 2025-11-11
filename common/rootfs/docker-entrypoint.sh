@@ -310,13 +310,13 @@ register_frpc_proxy() {
     # 因此不需要替换 127.0.0.1
     # 
     # 如果将来需要支持桥接网络模式，可以使用以下逻辑获取宿主机IP：
-    # local host_ip=""
-    # if command -v ip &> /dev/null; then
-    #     host_ip=$(ip route | awk '/default/ {print $3}' | head -n1)
-    # fi
-    # if [ -n "$host_ip" ] && [ "$host_ip" != "" ]; then
-    #     sed -i "s/127\.0\.0\.1/$host_ip/g" "$CONFIG_FILE"
-    # fi
+    local host_ip=""
+    if command -v ip &> /dev/null; then
+        host_ip=$(ip route | awk '/default/ {print $3}' | head -n1)
+    fi
+    if [ -n "$host_ip" ] && [ "$host_ip" != "" ]; then
+        sed -i "s/127\.0\.0\.1/$host_ip/g" "$CONFIG_FILE"
+    fi
     
     bashio::log.info "FRPC configuration file generated successfully: $CONFIG_FILE"
 }
