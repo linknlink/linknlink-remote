@@ -88,7 +88,7 @@ send_heartbeat() {
             return 1
         fi
 
-        bashio::log.debug "Heartbeat success: $msg"
+        # bashio::log.debug "Heartbeat success: $msg"
     fi
 
     return 0
