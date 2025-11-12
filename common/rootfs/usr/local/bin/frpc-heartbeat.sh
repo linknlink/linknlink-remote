@@ -6,6 +6,9 @@
 
 set -euo pipefail
 
+LOG_LEVEL="${BASHIO_LOG_LEVEL:-info}"
+bashio::log.level "$LOG_LEVEL"
+
 DEVICE_ID="${1:-}"
 COMPANY_ID="${2:-}"
 USER_ID="${3:-}"
