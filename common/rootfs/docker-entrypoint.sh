@@ -3,7 +3,7 @@
 LOG_LEVEL=$(bashio::config 'log_level' 'info')
 bashio::log.level "${LOG_LEVEL}"
 
-bashio::log.info "Preparing to start FRPC Client..."
+bashio::log.info "Preparing to start LinknLink Remote..."
 
 # 从配置中读取账号密码
 AUTH_ACCOUNT=$(bashio::config 'authentication.email' "")

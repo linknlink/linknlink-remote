@@ -8,7 +8,7 @@ This repository offers Home Assistant remote access services built on top of the
 
 ## Available Add-ons
 
-### 📡 FRPC Client
+### 📡 LinknLink Remote
 
 Home Assistant add-on that delivers remote access through the LinknLink platform.
 
@@ -50,7 +50,7 @@ Once the repository is added, locate the desired add-on in the store and click *
 
 ## Quick Start
 
-After installing the FRPC Client add-on:
+After installing the LinknLink Remote add-on:
 
 1. Enter your LinknLink platform email and password
 2. Click **Start**

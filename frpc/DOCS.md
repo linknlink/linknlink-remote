@@ -1,4 +1,4 @@
-# Home Assistant Add-on: FRPC Client
+# Home Assistant Add-on: LinknLink Remote
 
 Enable easy remote access to Home Assistant through the LinknLink platform.
 
@@ -20,7 +20,7 @@ Before using this Add-on, you need:
 
 For convenient access and management, you can display the Add-on in the sidebar:
 
-1. Go to `Settings` → `Add-ons` → `FRPC Client`
+1. Go to `Settings` → `Add-ons` → `LinknLink Remote`
 2. Enable the **Show in sidebar** option
 
 ## Configuration
@@ -52,12 +52,12 @@ authentication:
 
 ## How It Works
 
-FRPC Client Add-on workflow:
+LinknLink Remote Add-on workflow:
 
 1. **Device Identification**: Automatically obtains device unique identifier on startup
 2. **Platform Login**: Uses your provided account credentials to log in to the LinknLink platform
 3. **Proxy Registration**: Automatically registers Home Assistant service (port 8123) with the platform
-4. **Establish Connection**: Downloads and starts FRPC client, establishes reverse proxy tunnel (port 38123)
+4. **Establish Connection**: Downloads and starts LinknLink Remote client, establishes reverse proxy tunnel (port 38123)
 5. **Stay Online**: Continuously maintains connection to ensure stable remote access availability
 
 ### Device ID

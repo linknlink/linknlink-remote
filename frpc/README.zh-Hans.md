@@ -1,10 +1,10 @@
-# Home Assistant Add-on: FRPC Client
+# Home Assistant Add-on: LinknLink Remote
 
 通过 LinknLink 平台实现 Home Assistant 的远程访问。
 
 ## 关于
 
-FRPC Client 是一个简单易用的 Home Assistant 加载项，让您无需复杂配置即可实现远程访问。
+LinknLink Remote 是一个简单易用的 Home Assistant 加载项，让您无需复杂配置即可实现远程访问。
 
 它通过与 LinknLink IoT 平台集成，自动完成设备注册、代理配置和隧道建立。您只需要提供平台账号，剩下的工作交给它来完成。
 
@@ -34,7 +34,7 @@ FRPC Client 是一个简单易用的 Home Assistant 加载项，让您无需复�
 
 ### 安装 Add-on
 
-1. 在加载项商店中找到 **FRPC Client**
+1. 在加载项商店中找到 **LinknLink Remote**
 2. 点击进入 Add-on 详情页
 3. 点击 **安装** 按钮
 4. 等待安装完成
