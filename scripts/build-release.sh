@@ -9,7 +9,7 @@ set -e
 
 # 配置
 CONFIG_FILE="frpc/config.json"
-REPO="acmen0102/linknlink-remote"
+REPO="linknlink/linknlink-remote"
 
 # 颜色输出
 RED='\033[0;31m'

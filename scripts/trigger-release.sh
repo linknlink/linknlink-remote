@@ -7,7 +7,7 @@
 set -e
 
 # 配置
-REPO="acmen0102/linknlink-remote"
+REPO="linknlink/linknlink-remote"
 TOKEN="${GITHUB_TOKEN}"
 VERSION="${1}"
 

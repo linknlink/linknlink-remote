@@ -88,14 +88,14 @@ export GITHUB_TOKEN="your_token_here"
 curl -X POST \
   -H "Accept: application/vnd.github.v3+json" \
   -H "Authorization: token $GITHUB_TOKEN" \
-  https://api.github.com/repos/acmen0102/linknlink-remote/dispatches \
+  https://api.github.com/repos/linknlink/linknlink-remote/dispatches \
   -d '{"event_type":"release","client_payload":{"version":"1.0.1"}}'
 ```
 
 ## 验证
 
 触发成功后，访问以下链接查看 workflow 运行状态：
-- https://github.com/acmen0102/linknlink-remote/actions
+- https://github.com/linknlink/linknlink-remote/actions
 
 ## 其他触发方式
 

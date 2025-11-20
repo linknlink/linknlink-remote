@@ -12,7 +12,7 @@ import requests
 import re
 
 # 配置
-REPO = "acmen0102/linknlink-remote"
+REPO = "linknlink/linknlink-remote"
 TOKEN_ENV = "GITHUB_TOKEN"
 
 
