@@ -194,16 +194,40 @@ if [ "$PUSH" = true ]; then
     fi
 fi
 
+# 获取脚本所在目录（在脚本开头确定，避免在函数中使用 BASH_SOURCE）
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# 获取 GitHub Token（先从环境变量获取，如果本地有 *.token 文件，则读取文件中 token 进行覆盖）
+get_github_token() {
+    local token="${GITHUB_TOKEN}"
+    
+    # 查找项目根目录下的 *.token 文件
+    local token_file=$(find "$PROJECT_ROOT" -maxdepth 1 -name "*.token" -type f 2>/dev/null | head -n1)
+    
+    # 如果找到 token 文件，读取文件中的 token 覆盖环境变量
+    if [ -n "$token_file" ] && [ -f "$token_file" ]; then
+        local file_token=$(cat "$token_file" | tr -d '[:space:]')
+        if [ -n "$file_token" ]; then
+            token="$file_token"
+            echo -e "${YELLOW}从文件读取 token: $(basename "$token_file")${NC}" >&2
+        fi
+    fi
+    
+    echo "$token"
+}
+
 # 触发 release workflow
 if [ "$TRIGGER" = true ]; then
     echo ""
     echo -e "${GREEN}触发 release workflow...${NC}"
     
-    TOKEN="${GITHUB_TOKEN}"
+    TOKEN=$(get_github_token)
     if [ -z "$TOKEN" ]; then
-        echo -e "${RED}错误: GITHUB_TOKEN 环境变量未设置${NC}"
-        echo "请设置 GITHUB_TOKEN 环境变量:"
-        echo "  export GITHUB_TOKEN=\"your_token_here\""
+        echo -e "${RED}错误: GITHUB_TOKEN 未设置${NC}"
+        echo "请通过以下方式之一设置:"
+        echo "  1. 环境变量: export GITHUB_TOKEN=\"your_token_here\""
+        echo "  2. 创建 *.token 文件: 在项目根目录创建 *.token 文件，内容为 token"
         exit 1
     fi
     

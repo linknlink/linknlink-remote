@@ -41,18 +41,82 @@ export GITHUB_TOKEN="your_token_here"
 
 ## 手动触发 Release Workflow
 
-### 前置要求
+### 前置要求：获取 GITHUB_TOKEN
 
-1. **生成 GitHub Personal Access Token (PAT)**
-   - 访问：https://github.com/settings/tokens
-   - 点击 "Generate new token" → "Generate new token (classic)"
-   - 权限选择：`repo` 或 `workflow`
-   - 复制生成的 token
+要触发 GitHub Actions workflow，需要先获取 GitHub Personal Access Token (PAT)。
 
-2. **设置环境变量**
-   ```bash
-   export GITHUB_TOKEN="your_token_here"
-   ```
+#### 步骤 1: 生成 Personal Access Token
+
+1. **访问 GitHub Token 设置页面**
+   - 打开浏览器，访问：https://github.com/settings/tokens
+   - 或者：GitHub 主页 → 右上角头像 → **Settings** → 左侧菜单 **Developer settings** → **Personal access tokens** → **Tokens (classic)**
+
+2. **创建新 Token**
+   - 点击 **Generate new token** 按钮
+   - 选择 **Generate new token (classic)**（经典版本）
+
+3. **配置 Token**
+   - **Note（备注）**：填写一个描述性名称，如 `linknlink-remote-release`
+   - **Expiration（过期时间）**：选择有效期（建议选择较长时间，如 90 天或自定义）
+   - **Select scopes（选择权限）**：至少勾选以下权限之一：
+     - ✅ **`repo`** - 完整仓库访问权限（推荐，包含所有仓库操作）
+     - ✅ **`workflow`** - 更新 GitHub Action workflows（如果只使用 workflow 功能）
+
+4. **生成并复制 Token**
+   - 滚动到页面底部，点击 **Generate token** 按钮
+   - ⚠️ **重要**：Token 只会显示一次，请立即复制保存！
+   - Token 格式类似：`ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`
+
+#### 步骤 2: 设置环境变量
+
+有几种方式设置 `GITHUB_TOKEN` 环境变量：
+
+**方法 1: 临时设置（当前终端会话有效）**
+```bash
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+```
+
+**方法 2: 永久设置（推荐）**
+```bash
+# 编辑 ~/.bashrc 或 ~/.zshrc
+echo 'export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"' >> ~/.bashrc
+
+# 重新加载配置
+source ~/.bashrc
+```
+
+**方法 3: 使用专用脚本文件（推荐用于多账号）**
+```bash
+# 在 ~/1_codes/env/ 目录下创建脚本文件
+# 例如：~/1_codes/env/github_token_acmen0102.sh
+export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# 使用前加载
+source ~/1_codes/env/github_token_linknlink.sh
+```
+
+**方法 4: 在命令中直接指定（一次性使用）**
+```bash
+GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" ./scripts/build-release.sh patch --commit --push --trigger
+```
+
+#### 步骤 3: 验证 Token
+
+```bash
+# 检查环境变量是否设置成功
+echo $GITHUB_TOKEN
+
+# 测试 Token 是否有效（会显示你的 GitHub 用户名）
+curl -H "Authorization: token $GITHUB_TOKEN" https://api.github.com/user
+```
+
+#### 安全提示
+
+- ⚠️ **不要将 Token 提交到 Git 仓库**
+- ⚠️ **不要在不安全的环境中分享 Token**
+- ⚠️ **定期更新 Token**（如果设置了过期时间）
+- ✅ **使用最小权限原则**（只授予必要的权限）
+- ✅ **Token 泄露后立即撤销**：访问 https://github.com/settings/tokens 删除旧 Token
 
 ## 使用方法
 

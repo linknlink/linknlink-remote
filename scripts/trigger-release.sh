@@ -8,8 +8,30 @@ set -e
 
 # 配置
 REPO="linknlink/linknlink-remote"
-TOKEN="${GITHUB_TOKEN}"
 VERSION="${1}"
+
+# 获取脚本所在目录和项目根目录
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# 获取 GitHub Token（先从环境变量获取，如果本地有 *.token 文件，则读取文件中 token 进行覆盖）
+get_github_token() {
+    local token="${GITHUB_TOKEN}"
+    
+    # 查找项目根目录下的 *.token 文件
+    local token_file=$(find "$PROJECT_ROOT" -maxdepth 1 -name "*.token" -type f 2>/dev/null | head -n1)
+    
+    # 如果找到 token 文件，读取文件中的 token 覆盖环境变量
+    if [ -n "$token_file" ] && [ -f "$token_file" ]; then
+        local file_token=$(cat "$token_file" | tr -d '[:space:]')
+        if [ -n "$file_token" ]; then
+            token="$file_token"
+            echo "从文件读取 token: $(basename "$token_file")" >&2
+        fi
+    fi
+    
+    echo "$token"
+}
 
 # 检查版本参数
 if [ -z "$VERSION" ]; then
@@ -19,15 +41,17 @@ if [ -z "$VERSION" ]; then
     exit 1
 fi
 
+# 获取 token
+TOKEN=$(get_github_token)
+
 # 检查 token
 if [ -z "$TOKEN" ]; then
-    echo "错误: GITHUB_TOKEN 环境变量未设置"
+    echo "错误: GITHUB_TOKEN 未设置"
     echo ""
-    echo "请设置 GITHUB_TOKEN 环境变量:"
-    echo "  export GITHUB_TOKEN=\"your_token_here\""
-    echo ""
-    echo "或者在使用时直接指定:"
-    echo "  GITHUB_TOKEN=\"your_token\" $0 $VERSION"
+    echo "请通过以下方式之一设置:"
+    echo "  1. 环境变量: export GITHUB_TOKEN=\"your_token_here\""
+    echo "  2. 创建 *.token 文件: 在项目根目录创建 *.token 文件，内容为 token"
+    echo "  3. 命令行指定: GITHUB_TOKEN=\"your_token\" $0 $VERSION"
     exit 1
 fi
 
