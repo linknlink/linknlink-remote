@@ -397,7 +397,7 @@ display_device_info() {
     # 以醒目的方式输出设备ID信息
     bashio::log.info ""
     bashio::log.info "=========================================="
-    bashio::log.info "  设备ID (Device ID): $device_id"
+    bashio::log.info "  Device ID: $device_id"
     bashio::log.info "=========================================="
     bashio::log.info ""
 }
