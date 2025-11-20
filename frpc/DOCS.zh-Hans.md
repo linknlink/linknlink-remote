@@ -174,7 +174,7 @@ Add-on 会自动配置以下代理规则：
 
 1. 查看本文档的故障排除部分
 2. 检查日志中的详细错误信息
-3. 在 [GitHub Issues](https://github.com/acmen0102/linknlink-remote/issues) 提交问题
+3. 在 [GitHub Issues](https://github.com/linknlink/linknlink-remote/issues) 提交问题
 4. 联系 LinknLink 平台技术支持
 
 ---

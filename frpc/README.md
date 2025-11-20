@@ -28,7 +28,7 @@ It integrates with the LinknLink IoT platform to automatically complete device r
 3. Click the menu icon (⋮) in the top right → **Repositories**
 4. Add this repository URL:
    ```
-   https://github.com/acmen0102/linknlink-remote
+   https://github.com/linknlink/linknlink-remote
    ```
 5. Click **Add**
 
@@ -110,7 +110,7 @@ For detailed documentation, please check the **Documentation** tab, which includ
 Having issues?
 
 - 📖 Check the troubleshooting section in the [Documentation tab](#)
-- 🐛 Submit an Issue on [GitHub](https://github.com/acmen0102/linknlink-remote/issues)
+- 🐛 Submit an Issue on [GitHub](https://github.com/linknlink/linknlink-remote/issues)
 - 💬 Contact LinknLink technical support
 
 ## Credits

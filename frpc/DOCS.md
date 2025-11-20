@@ -173,7 +173,7 @@ If you encounter issues:
 
 1. Check the troubleshooting section of this document
 2. Check detailed error messages in the logs
-3. Submit an issue on [GitHub Issues](https://github.com/acmen0102/linknlink-remote/issues)
+3. Submit an issue on [GitHub Issues](https://github.com/linknlink/linknlink-remote/issues)
 4. Contact LinknLink platform technical support
 
 ---

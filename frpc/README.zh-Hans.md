@@ -28,7 +28,7 @@ FRPC Client 是一个简单易用的 Home Assistant 加载项，让您无需复�
 3. 点击右上角菜单（⋮）→ **仓库**
 4. 添加此仓库 URL：
    ```
-   https://github.com/acmen0102/linknlink-remote
+   https://github.com/linknlink/linknlink-remote
    ```
 5. 点击 **添加**
 
@@ -110,7 +110,7 @@ log_level: info
 遇到问题？
 
 - 📖 查看 [文档标签页](#) 中的故障排除部分
-- 🐛 在 [GitHub](https://github.com/acmen0102/linknlink-remote/issues) 提交 Issue
+- 🐛 在 [GitHub](https://github.com/linknlink/linknlink-remote/issues) 提交 Issue
 - 💬 联系 LinknLink 技术支持
 
 ## 致谢

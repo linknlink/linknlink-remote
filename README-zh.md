@@ -34,14 +34,14 @@ Home Assistant 第三方加载项仓库，提供简单易用的远程访问解�
 [![添加仓库到 Home Assistant][add-repo-badge]][add-repo]
 
 [add-repo-badge]: https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg
-[add-repo]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Facmen0102%2Flinknlink-remote
+[add-repo]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Flinknlink%2Flinknlink-remote
 
 ### 方法 2: 手动添加
 
 1. 打开 Home Assistant
 2. 进入 **设置** → **加载项** → **加载项商店**
 3. 点击右上角菜单（⋮）→ **仓库**
-4. 添加仓库地址：`https://github.com/acmen0102/linknlink-remote`
+4. 添加仓库地址：`https://github.com/linknlink/linknlink-remote`
 5. 点击 **添加**
 
 ### 安装加载项
@@ -73,14 +73,14 @@ Home Assistant 第三方加载项仓库，提供简单易用的远程访问解�
 ### 更多帮助
 
 - 📖 查看 [加载项文档](frpc/README.md)
-- 🐛 [提交 Issue](https://github.com/acmen0102/linknlink-remote/issues)
+- 🐛 [提交 Issue](https://github.com/linknlink/linknlink-remote/issues)
 - 💬 联系 LinknLink 技术支持
 
 ## 支持
 
 如有问题或建议，欢迎：
 
-- 在 [GitHub Issues](https://github.com/acmen0102/linknlink-remote/issues) 提交反馈
+- 在 [GitHub Issues](https://github.com/linknlink/linknlink-remote/issues) 提交反馈
 - 查看 [更新日志](frpc/CHANGELOG.md) 了解最新变化
 
 ---

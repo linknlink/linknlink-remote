@@ -34,14 +34,14 @@ Click the button below to add this repository to Home Assistant:
 [![Add Repository to Home Assistant][add-repo-badge]][add-repo]
 
 [add-repo-badge]: https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg
-[add-repo]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Facmen0102%2Flinknlink-remote
+[add-repo]: https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2Flinknlink%2Flinknlink-remote
 
 ### Option 2: Manual add
 
 1. Open Home Assistant
 2. Navigate to **Settings** → **Add-ons** → **Add-on Store**
 3. Click the menu icon (⋮) in the top-right corner → **Repositories**
-4. Add repository URL: `https://github.com/acmen0102/linknlink-remote`
+4. Add repository URL: `https://github.com/linknlink/linknlink-remote`
 5. Click **Add**
 
 ### Install an add-on
@@ -73,14 +73,14 @@ Register through the LinknLink mobile app.
 ### Need more help?
 
 - 📖 Review the [add-on documentation](frpc/README.md)
-- 🐛 [Open an Issue](https://github.com/acmen0102/linknlink-remote/issues)
+- 🐛 [Open an Issue](https://github.com/linknlink/linknlink-remote/issues)
 - 💬 Contact LinknLink support
 
 ## Support
 
 If you have questions or suggestions:
 
-- File feedback via [GitHub Issues](https://github.com/acmen0102/linknlink-remote/issues)
+- File feedback via [GitHub Issues](https://github.com/linknlink/linknlink-remote/issues)
 - Review the [Changelog](frpc/CHANGELOG.md) for the latest updates
 
 ---

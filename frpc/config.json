@@ -3,7 +3,7 @@
   "version": "1.0.26",
   "slug": "frpc",
   "description": "Enable remote access to Home Assistant through the LinknLink platform. 通过 LinknLink 平台实现 Home Assistant 的远程访问。",
-  "url": "https://github.com/acmen0102/linknlink-remote",
+  "url": "https://github.com/linknlink/linknlink-remote",
   "startup": "services",
   "boot": "auto",
   "init": false,
@@ -28,5 +28,5 @@
   },
   "ports": {},
   "ports_description": {},
-  "image": "ghcr.io/acmen0102/linknlink-remote-frpc-{arch}"
+  "image": "ghcr.io/linknlink/linknlink-remote-frpc-{arch}"
 }
