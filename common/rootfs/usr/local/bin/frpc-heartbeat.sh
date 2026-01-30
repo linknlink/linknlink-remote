@@ -1,4 +1,4 @@
-#!/usr/bin/env bashio
+#!/bin/bash
 
 # =============================================================================
 # 脚本：FRPC 心跳上报
@@ -6,8 +6,30 @@
 
 set -euo pipefail
 
-LOG_LEVEL="${BASHIO_LOG_LEVEL:-info}"
-bashio::log.level "$LOG_LEVEL"
+# 日志函数
+log() {
+    local level="$1"
+    shift
+    local message="$*"
+    local timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$timestamp] [$level] $message" >&2
+}
+
+log_info() {
+    log "INFO" "$@"
+}
+
+log_warn() {
+    log "WARN" "$@"
+}
+
+log_debug() {
+    if [ "${LOG_LEVEL:-info}" = "debug" ] || [ "${LOG_LEVEL:-info}" = "trace" ]; then
+        log "DEBUG" "$@"
+    fi
+}
+
+LOG_LEVEL="${LOG_LEVEL:-info}"
 
 DEVICE_ID="${1:-}"
 COMPANY_ID="${2:-}"
@@ -15,7 +37,7 @@ USER_ID="${3:-}"
 FRPC_PID="${4:-}"
 
 if [ -z "$DEVICE_ID" ]; then
-    bashio::log.error "Heartbeat script requires device_id"
+    log_warn "Heartbeat script requires device_id"
     exit 1
 fi
 
@@ -48,7 +70,7 @@ send_heartbeat() {
     local running="$(is_frpc_running)"
     local json_data="{\"did\":\"$DEVICE_ID\",\"running\":$running}"
 
-    bashio::log.debug "Heartbeat request payload: $json_data"
+    log_debug "Heartbeat request payload: $json_data"
 
     local http_response
     http_response=$(curl -s -w "\n%{http_code}" -X POST \
@@ -63,11 +85,11 @@ send_heartbeat() {
     local content
     content=$(echo "$http_response" | head -n -1)
 
-    bashio::log.debug "Heartbeat response code: $http_code"
-    bashio::log.debug "Heartbeat response body: $content"
+    log_debug "Heartbeat response code: $http_code"
+    log_debug "Heartbeat response body: $content"
 
     if [ "$http_code" != "200" ]; then
-        bashio::log.warning "Heartbeat request failed with HTTP code: $http_code"
+        log_warn "Heartbeat request failed with HTTP code: $http_code"
         return 1
     fi
 
@@ -84,15 +106,12 @@ send_heartbeat() {
         fi
 
         if [ "$status" != "0" ]; then
-            bashio::log.warning "Heartbeat responded with status: $status, message: $msg"
+            log_warn "Heartbeat responded with status: $status, message: $msg"
             return 1
         fi
-
-        # bashio::log.debug "Heartbeat success: $msg"
     fi
 
     return 0
 }
 
 send_heartbeat
-

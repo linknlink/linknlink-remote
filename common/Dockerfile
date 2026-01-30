@@ -1,8 +1,6 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM as base
+FROM alpine:latest
 
 ENV LANG C.UTF-8
-ARG BUILD_VERSION
 ARG FRP_VERSION=0.65.0
 
 # Set shell
@@ -11,6 +9,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 # Install dependencies and download FRPC
 RUN \
     apk add --no-cache \
+        bash \
         curl \
         jq \
         util-linux \
@@ -52,30 +51,16 @@ RUN \
 # Copy root filesystem
 COPY rootfs /
 
-# Build arguments
-ARG BUILD_ARCH
-ARG BUILD_DATE
-ARG BUILD_DESCRIPTION
-ARG BUILD_NAME="LinknLink Remote"
-ARG BUILD_REF
-ARG BUILD_REPOSITORY
-ARG BUILD_VERSION
+# Ensure scripts are executable
+RUN chmod +x /docker-entrypoint.sh /usr/local/bin/frpc-heartbeat.sh
 
 # Labels
 LABEL \
-    io.hass.name="${BUILD_NAME}" \
-    io.hass.description="${BUILD_DESCRIPTION}" \
-    io.hass.arch="${BUILD_ARCH}" \
-    io.hass.type="addon" \
-    io.hass.version="${BUILD_VERSION}" \
-    org.opencontainers.image.title="${BUILD_NAME}" \
-    org.opencontainers.image.description="${BUILD_DESCRIPTION}" \
+    org.opencontainers.image.title="LinknLink Remote" \
+    org.opencontainers.image.description="Enable remote access through the LinknLink platform" \
     org.opencontainers.image.vendor="LinknLink" \
-    org.opencontainers.image.source="https://github.com/${BUILD_REPOSITORY}" \
-    org.opencontainers.image.documentation="https://github.com/${BUILD_REPOSITORY}/blob/main/frpc/README.md" \
-    org.opencontainers.image.created="${BUILD_DATE}" \
-    org.opencontainers.image.revision="${BUILD_REF}" \
-    org.opencontainers.image.version="${BUILD_VERSION}"
+    org.opencontainers.image.source="https://github.com/linknlink/linknlink-remote" \
+    org.opencontainers.image.documentation="https://github.com/linknlink/linknlink-remote"
 
 # Run script
 ENTRYPOINT [ "/docker-entrypoint.sh" ]

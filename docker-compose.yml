@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  linknlink-remote:
+    build:
+      context: .
+      dockerfile: common/Dockerfile
+    container_name: linknlink-remote
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      # 必需配置
+      - AUTH_EMAIL=${AUTH_EMAIL}
+      - AUTH_PASSWORD=${AUTH_PASSWORD}
+      # 可选配置
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - CONFIG_FILE=${CONFIG_FILE:-/config/frpc.toml}
+      - DATA_DIR=${DATA_DIR:-/data}
+    volumes:
+      # 数据目录（持久化以下文件）:
+      #   - device_id.txt: 设备ID的持久化存储（确保容器重启后设备ID不变）
+      - ./data:/data
+    # 使用 host 网络模式，无需暴露端口
+    # 注意：host 模式下，容器直接使用宿主机网络，可以访问宿主机上的服务
