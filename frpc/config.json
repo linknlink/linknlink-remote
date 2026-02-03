@@ -28,5 +28,5 @@
   },
   "ports": {},
   "ports_description": {},
-  "image": "ghcr.io/linknlink/linknlink-remote-frpc-{arch}"
+  "image": "ghcr.io/linknlink/linknlink-remote-{arch}"
 }

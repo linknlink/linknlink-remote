@@ -2,6 +2,7 @@ version: '3.8'
 
 services:
   linknlink-remote:
+    image: ghcr.io/linknlink/linknlink-remote:latest
     build:
       context: .
       dockerfile: common/Dockerfile

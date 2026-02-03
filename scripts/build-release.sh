@@ -263,5 +263,5 @@ if [ "$PUSH" = false ]; then
     echo "  3. 推送到远程: git push"
 fi
 echo "  4. 查看构建状态: https://github.com/$REPO/actions"
-echo "  5. 查看已发布的镜像: https://github.com/$REPO/pkgs/container/linknlink-remote-frpc"
+echo "  5. 查看已发布的镜像: https://github.com/$REPO/pkgs/container/linknlink-remote"
 
