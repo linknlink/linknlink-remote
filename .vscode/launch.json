@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "启动 Web 管理服务",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/common/rootfs/app/main.py",
+            "console": "integratedTerminal",
+            "env": {
+                "SERVICE_DIR": "${workspaceFolder}/.local_dev/service_dir",
+                "IEG_AUTH_BASE_URL": "http://127.0.0.1:22210",
+                "FLASK_DEBUG": "1"
+            },
+            "justMyCode": true
+        }
+    ]
+}

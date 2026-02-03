@@ -1,0 +1,130 @@
+import subprocess
+import uuid
+import syslog
+from pathlib import Path
+from config import DEVICE_ID_FILE
+
+def get_primary_interface_mac():
+    """
+    获取主网卡的MAC地址
+    优先使用默认路由的网卡，如果失败则使用第一个非回环、非虚拟网卡
+    返回: MAC地址字符串，失败返回空字符串
+    """
+    try:
+        # 方法1: 尝试获取默认路由的网卡
+        result = subprocess.run(
+            ['ip', 'route', 'show', 'default'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        if result.returncode == 0 and result.stdout:
+            # 解析默认路由输出，格式如: default via 192.168.1.1 dev eth0
+            lines = result.stdout.strip().split('\n')
+            for line in lines:
+                if 'dev' in line:
+                    parts = line.split()
+                    try:
+                        dev_index = parts.index('dev')
+                        if dev_index + 1 < len(parts):
+                            interface = parts[dev_index + 1]
+                            # 获取该网卡的MAC地址
+                            mac_result = subprocess.run(
+                                ['cat', f'/sys/class/net/{interface}/address'],
+                                capture_output=True,
+                                text=True,
+                                timeout=5
+                            )
+                            if mac_result.returncode == 0:
+                                mac = mac_result.stdout.strip()
+                                if mac and len(mac) == 17:  # MAC地址格式: xx:xx:xx:xx:xx:xx
+                                    return mac
+                    except (ValueError, IndexError):
+                        continue
+        
+        # 方法2: 遍历所有网卡，找到第一个非回环、非虚拟网卡
+        result = subprocess.run(
+            ['ls', '/sys/class/net/'],
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+        
+        if result.returncode == 0:
+            interfaces = result.stdout.strip().split('\n')
+            # 排除回环和虚拟网卡
+            exclude_prefixes = ['lo', 'docker', 'br-', 'veth', 'virbr', 'vmnet']
+            
+            for interface in interfaces:
+                interface = interface.strip()
+                if not interface:
+                    continue
+                
+                # 检查是否是排除的网卡
+                should_exclude = False
+                for prefix in exclude_prefixes:
+                    if interface.startswith(prefix):
+                        should_exclude = True
+                        break
+                
+                if should_exclude:
+                    continue
+                
+                # 检查网卡是否有MAC地址
+                mac_file = Path(f'/sys/class/net/{interface}/address')
+                if mac_file.exists():
+                    try:
+                        mac = mac_file.read_text().strip()
+                        if mac and len(mac) == 17:
+                            return mac
+                    except:
+                        continue
+        
+        return ""
+    except Exception as e:
+        syslog.syslog(syslog.LOG_ERR, f"获取主网卡MAC地址失败: {str(e)}")
+        return ""
+
+def get_device_id():
+    """
+    获取设备ID（MAC地址或UUID）
+    优先使用持久化存储的设备ID，否则使用MAC地址，最后使用UUID
+    """
+    # 1. 优先使用持久化存储的设备ID
+    if DEVICE_ID_FILE.exists():
+        try:
+            saved_id = DEVICE_ID_FILE.read_text().strip().lower()
+            if saved_id:
+                syslog.syslog(syslog.LOG_INFO, f"Using stored device ID: {saved_id}")
+                return saved_id
+        except Exception as e:
+            syslog.syslog(syslog.LOG_WARNING, f"Read stored device ID failed: {e}")
+
+    # 2. 尝试获取MAC地址
+    mac = get_primary_interface_mac().replace(':', '').upper()
+    device_id = ""
+    
+    if mac:
+        # 补齐到32位
+        padding = 32 - len(mac)
+        if padding > 0:
+            device_id = "0" * padding + mac
+        else:
+            device_id = mac
+        syslog.syslog(syslog.LOG_INFO, f"Using MAC address as device ID: {device_id}")
+    else:
+        # 3. 使用UUID
+        device_id = uuid.uuid4().hex.upper()
+        syslog.syslog(syslog.LOG_INFO, f"Using UUID as device ID: {device_id}")
+    
+    device_id = device_id.lower()
+    
+    # 持久化保存
+    try:
+        DEVICE_ID_FILE.write_text(device_id)
+        syslog.syslog(syslog.LOG_INFO, f"Persisted generated device ID: {device_id}")
+    except Exception as e:
+        syslog.syslog(syslog.LOG_ERR, f"Save device ID failed: {e}")
+        
+    return device_id
