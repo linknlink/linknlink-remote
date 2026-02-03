@@ -11,17 +11,13 @@ ROOTFS_DIR = APP_DIR.parent           # rootfs/
 SERVICE_DIR = Path(os.getenv('SERVICE_DIR', '/etc/frpc'))
 DATA_DIR = Path(os.getenv('DATA_DIR', '/data'))
 
-# 确保目录存在
-SERVICE_DIR.mkdir(parents=True, exist_ok=True)
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-
 REMOTE_ASSISTANCE_FILE = SERVICE_DIR / "remote_assistance"
 VISITOR_CODE_FILE = SERVICE_DIR / "visitor_code"
 DEVICE_ID_FILE = DATA_DIR / "device_id.txt"
 
 # 脚本路径
-SCRIPT_DIR = APP_DIR # 兼容旧逻辑，脚本都在 app/ 下
-COMMON_SH = APP_DIR / "common.sh" # 现在 common.sh 在 app/ 下
+SCRIPT_DIR = APP_DIR 
+COMMON_SH = APP_DIR / "common.sh"
 
 # ================= 认证配置 =================
 # iEG认证服务地址

@@ -13,14 +13,10 @@ FRPC_PROCESS = None
 
 def check_frpc_running():
     """检查frpc主进程是否运行"""
-    try:
-        result = subprocess.run(
-            ['systemctl', 'is-active', '--quiet', 'frpc'],
-            capture_output=True
-        )
-        return result.returncode == 0
-    except:
-        return False
+    global FRPC_PROCESS
+    if FRPC_PROCESS and FRPC_PROCESS.poll() is None:
+        return True
+    return False
 
 def start_frpc():
     """启动frpc主进程"""
@@ -33,15 +29,20 @@ def start_frpc():
         
         frpc_binary = "/usr/local/bin/frpc"
         if not os.path.exists(frpc_binary):
-            syslog.syslog(syslog.LOG_ERR, f"frpc 二进制文件不存在: {frpc_binary}")
-            return False
+            # 尝试备选路径
+            frpc_binary = shutil.which("frpc") or "/usr/bin/frpc"
+            if not frpc_binary or not os.path.exists(frpc_binary):
+                syslog.syslog(syslog.LOG_ERR, "frpc 二进制文件不存在")
+                return False
             
         # 启动 frpc 进程
-        log_file = open(SERVICE_DIR / "frpc.log", 'a')
+        log_file_path = SERVICE_DIR / "frpc.log"
+        log_file = open(log_file_path, 'a')
         FRPC_PROCESS = subprocess.Popen(
             [frpc_binary, '-c', str(config_file)],
             stdout=log_file,
-            stderr=subprocess.STDOUT
+            stderr=subprocess.STDOUT,
+            start_new_session=True
         )
         syslog.syslog(syslog.LOG_INFO, f"frpc 启动成功，PID: {FRPC_PROCESS.pid}")
         return True

@@ -108,11 +108,8 @@ function ensure_directory() {
 
 # 检查服务是否已安装
 function check_service_install() {
-    # 确保systemd状态是最新的
-    systemctl daemon-reload >/dev/null 2>&1 || true
-    
-    # 使用systemctl cat检查服务单元文件是否存在
-    if systemctl cat "${SERVICE_ID}.service" >/dev/null 2>&1; then
+    # 在 Docker 环境中，我们检查二进制文件和配置文件
+    if [ -x "/usr/local/bin/frpc" ] && [ -d "$SERVICE_DIR" ]; then
         return 0
     else
         return 1
@@ -121,7 +118,8 @@ function check_service_install() {
 
 # 检查服务是否运行
 function check_service_running() {
-    if systemctl is-active --quiet $SERVICE_ID; then
+    # 改用 pgrep 检查进程，不再依赖 systemctl
+    if pgrep -f "frpc -c.*/frpc.toml" >/dev/null 2>&1; then
         return 0
     else
         return 1
@@ -143,24 +141,26 @@ function get_version() {
 # 获取设备ID函数
 function get_device_id() {
     local device_id=""
-
-    # 从/etc/iegcloudaccess/ieginfo.json文件中获取设备ID
-    local ieginfo_file="/etc/iegcloudaccess/ieginfo.json"
     
-    # 检查文件是否存在
-    if [ -f "$ieginfo_file" ]; then
-        # 检查jq命令是否存在
-        if command -v jq &> /dev/null; then
-            # 使用jq提取did字段
-            device_id=$(jq -r '.did' "$ieginfo_file" 2>/dev/null)
-        else
-            # 使用sed从JSON中提取did字段
-            device_id=$(sed -n 's/.*"did"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$ieginfo_file")
-        fi
-        
-        # 检查提取的device_id是否有效
-        if [ "$device_id" = "null" ] || [ -z "$device_id" ]; then
-            device_id=""
+    # 1. 优先从 DATA_DIR (环境变量) 下的 device_id.txt 获取，与 Python 保持一致
+    local data_dir="${DATA_DIR:-/data}"
+    local dev_id_file="${data_dir}/device_id.txt"
+    
+    if [ -f "$dev_id_file" ]; then
+        device_id=$(cat "$dev_id_file" | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]')
+        log "INFO" "Found device ID from $dev_id_file: $device_id"
+    fi
+
+    # 2. 回退到原有 ieginfo.json
+    if [ -z "$device_id" ]; then
+        local ieginfo_file="/etc/iegcloudaccess/ieginfo.json"
+        if [ -f "$ieginfo_file" ]; then
+            if command -v jq &> /dev/null; then
+                device_id=$(jq -r '.did' "$ieginfo_file" 2>/dev/null)
+            else
+                device_id=$(sed -n 's/.*"did"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$ieginfo_file")
+            fi
+            [ "$device_id" = "null" ] && device_id=""
         fi
     fi
 

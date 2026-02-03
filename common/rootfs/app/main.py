@@ -4,7 +4,7 @@ import os
 from flask import Flask
 
 from config import (
-    SERVICE_DIR, TEMPLATES_DIR, 
+    SERVICE_DIR, DATA_DIR, TEMPLATES_DIR, 
     SECRET_KEY, PERMANENT_SESSION_LIFETIME, 
     SESSION_COOKIE_HTTPONLY, SESSION_COOKIE_SAMESITE
 )
@@ -25,12 +25,42 @@ app.config['SESSION_COOKIE_SAMESITE'] = SESSION_COOKIE_SAMESITE
 app.register_blueprint(web_bp)
 
 if __name__ == '__main__':
-    # 确保配置目录存在
-    SERVICE_DIR.mkdir(parents=True, exist_ok=True)
+    # 延迟导入，确保顶层导入不触发环境副作用
+    import config
+    
+    # 核心路径初始化逻辑（最优优化：失败则降级到本地目录运行）
+    try:
+        config.SERVICE_DIR.mkdir(parents=True, exist_ok=True)
+        config.DATA_DIR.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        syslog.syslog(syslog.LOG_WARNING, "默认路径权限不足，降级到当前目录 runtime 文件夹下运行...")
+        runtime_root = config.APP_DIR.parent / "runtime"
+        config.SERVICE_DIR = runtime_root / "etc"
+        config.DATA_DIR = runtime_root / "data"
+        
+        config.SERVICE_DIR.mkdir(parents=True, exist_ok=True)
+        config.DATA_DIR.mkdir(parents=True, exist_ok=True)
+        
+        # 同步更新依赖路径
+        config.REMOTE_ASSISTANCE_FILE = config.SERVICE_DIR / "remote_assistance"
+        config.VISITOR_CODE_FILE = config.SERVICE_DIR / "visitor_code"
+        config.DEVICE_ID_FILE = config.DATA_DIR / "device_id.txt"
+
+    # 使用更新后的路径
+    SERVICE_DIR = config.SERVICE_DIR
+    DATA_DIR = config.DATA_DIR
     
     # 启动时检查并启动 frpc
-    # 这里可以添加逻辑：如果存在配置文件则启动 frpc，否则等待配置
-    if (SERVICE_DIR / "frpc.toml").exists():
+    config_file = SERVICE_DIR / "frpc.toml"
+    if not config_file.exists():
+        syslog.syslog(syslog.LOG_INFO, "frpc.toml 不存在，尝试自动注册...")
+        from frpc_service import register_frpc_proxy
+        if register_frpc_proxy():
+            syslog.syslog(syslog.LOG_INFO, "代理自动注册成功")
+        else:
+            syslog.syslog(syslog.LOG_ERR, "代理自动注册失败，等待手动配置")
+
+    if config_file.exists():
         start_frpc()
     else:
         syslog.syslog(syslog.LOG_INFO, "等待配置以启动 frpc...")
@@ -40,6 +70,5 @@ if __name__ == '__main__':
     heartbeat_thread.start()
 
     # 启动 Flask 应用
-    # host='0.0.0.0' 允许外部访问
-    # 端口保持为 8888 (用户要求的)
+    syslog.syslog(syslog.LOG_INFO, "启动 Web 服务端口 8888...")
     app.run(host='0.0.0.0', port=8888, debug=False)

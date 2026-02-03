@@ -1,0 +1,8 @@
+[
+    {
+        "localIp": "127.0.0.1",
+        "localPort": "22",
+        "remotePort": "",
+        "type": "tcp"
+    }
+]
