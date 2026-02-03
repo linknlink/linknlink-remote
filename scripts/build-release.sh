@@ -189,7 +189,20 @@ if [ "$PUSH" = true ]; then
     if [ "$COMMIT" = false ]; then
         echo -e "${YELLOW}警告: 未提交更改，跳过推送${NC}"
     else
-        git push
+        # 获取当前分支名称
+        CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        
+        # 尝试推送，如果失败且提示没有上游分支，则设置上游并再次尝试
+        if ! git push 2>/tmp/git_push_error; then
+            if grep -q "has no upstream branch" /tmp/git_push_error; then
+                echo -e "${YELLOW}当前分支 $CURRENT_BRANCH 没有上游分支，正在设置...${NC}"
+                git push --set-upstream origin "$CURRENT_BRANCH"
+            else
+                cat /tmp/git_push_error
+                echo -e "${RED}✗ 推送失败${NC}"
+                exit 1
+            fi
+        fi
         echo -e "${GREEN}✓ 已推送到远程仓库${NC}"
     fi
 fi
