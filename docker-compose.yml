@@ -2,10 +2,7 @@ version: '3.8'
 
 services:
   linknlink-remote:
-    image: ghcr.io/linknlink/linknlink-remote:latest
-    build:
-      context: .
-      dockerfile: common/Dockerfile
+    image: ghcr.io/linknlink/linknlink-remote:v1.0.42
     container_name: linknlink-remote
     restart: unless-stopped
     network_mode: host
