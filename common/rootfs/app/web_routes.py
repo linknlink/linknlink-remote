@@ -11,7 +11,7 @@ from frpc_service import (
     cleanup_tmp_frpc_files, register_tmp_proxy
 )
 from device import get_device_id
-from ieg_auth import login_to_ieg, require_login
+from ieg_auth import require_login
 from cloud_service import CLOUD_AUTH_INFO
 
 # 创建 Blueprint
@@ -64,28 +64,6 @@ def index():
                           tmp_frpc_running=tmp_frpc_running,
                           visitor_code=visitor_code)
 
-@web_bp.route('/login', methods=['GET', 'POST'])
-def login_page():
-    if request.method == 'POST':
-        data = request.json
-        username = data.get('username')
-        password = data.get('password')
-        
-        token = login_to_ieg(username, password)
-        if token:
-            session['token'] = token
-            # 登录成功，获取用户信息存入session
-            # session['user_info'] = ... (require_login 会自动处理)
-            return jsonify({'success': True, 'message': '登录成功'})
-        else:
-            return jsonify({'success': False, 'message': '用户名或密码错误'})
-            
-    return render_template('login.html')
-
-@web_bp.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('web.login_page'))
 
 @web_bp.route('/api/status')
 @require_login
