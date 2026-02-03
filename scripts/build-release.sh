@@ -1,14 +1,14 @@
 #!/bin/bash
 
 # 构建并发布 Release 的脚本
-# 自动递增版本号，更新 config.json，并触发构建流程
+# 自动递增版本号，更新 VERSION 文件，并触发构建流程
 # 使用方法: ./scripts/build-release.sh [版本号类型: patch|minor|major] [--commit] [--push]
 # 例如: ./scripts/build-release.sh patch --commit --push
 
 set -e
 
 # 配置
-CONFIG_FILE="frpc/config.json"
+VERSION_FILE="VERSION"
 REPO="linknlink/linknlink-remote"
 
 # 颜色输出
@@ -84,22 +84,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 # 检查文件是否存在
-if [ ! -f "$CONFIG_FILE" ]; then
-    echo -e "${RED}错误: 找不到配置文件 $CONFIG_FILE${NC}"
-    exit 1
-fi
-
-# 检查是否有 jq 命令
-if ! command -v jq &> /dev/null; then
-    echo -e "${RED}错误: 需要安装 jq 命令${NC}"
-    echo "安装方法:"
-    echo "  Ubuntu/Debian: sudo apt-get install jq"
-    echo "  macOS: brew install jq"
-    exit 1
+if [ ! -f "$VERSION_FILE" ]; then
+    echo "0.0.0" > "$VERSION_FILE"
+    echo -e "${YELLOW}警告: 找不到配置文件 $VERSION_FILE，已创建初始版本 0.0.0${NC}"
 fi
 
 # 读取当前版本
-CURRENT_VERSION=$(jq -r '.version' "$CONFIG_FILE")
+CURRENT_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
 echo -e "${GREEN}当前版本: ${CURRENT_VERSION}${NC}"
 
 # 计算新版本
@@ -134,9 +125,9 @@ if [ "$NEW_VERSION" = "$CURRENT_VERSION" ]; then
     exit 1
 fi
 
-# 检查版本是否已经存在
+# 检查版本是否已经存在 tag
 if git tag -l | grep -q "^v${NEW_VERSION}$"; then
-    echo -e "${RED}错误: 版本 v${NEW_VERSION} 已经存在${NC}"
+    echo -e "${RED}错误: 版本 tag v${NEW_VERSION} 已经存在${NC}"
     echo "请使用不同的版本号"
     exit 1
 fi
@@ -152,13 +143,12 @@ if [[ ! $REPLY =~ ^[Yy]$ ]]; then
     exit 0
 fi
 
-# 更新 config.json
-echo -e "${GREEN}更新 $CONFIG_FILE...${NC}"
-jq ".version = \"$NEW_VERSION\"" "$CONFIG_FILE" > "$CONFIG_FILE.tmp"
-mv "$CONFIG_FILE.tmp" "$CONFIG_FILE"
+# 更新 VERSION 文件
+echo -e "${GREEN}更新 $VERSION_FILE...${NC}"
+echo "$NEW_VERSION" > "$VERSION_FILE"
 
 # 验证更新
-UPDATED_VERSION=$(jq -r '.version' "$CONFIG_FILE")
+UPDATED_VERSION=$(cat "$VERSION_FILE" | tr -d '[:space:]')
 if [ "$UPDATED_VERSION" != "$NEW_VERSION" ]; then
     echo -e "${RED}错误: 版本更新失败${NC}"
     exit 1
@@ -172,13 +162,18 @@ if [ "$COMMIT" = true ]; then
     echo -e "${GREEN}提交更改...${NC}"
     
     # 检查是否有未提交的更改
-    if ! git diff --quiet "$CONFIG_FILE"; then
-        git add "$CONFIG_FILE"
+    if ! git diff --quiet "$VERSION_FILE"; then
+        git add "$VERSION_FILE"
         git commit -m "chore: 更新版本到 v${NEW_VERSION}"
         echo -e "${GREEN}✓ 已提交更改${NC}"
     else
         echo -e "${YELLOW}没有需要提交的更改${NC}"
     fi
+
+    # 创建 git tag
+    echo -e "${GREEN}创建 tag v${NEW_VERSION}...${NC}"
+    git tag "v${NEW_VERSION}"
+    echo -e "${GREEN}✓ 已创建 tag${NC}"
 fi
 
 # 推送到远程
@@ -192,7 +187,7 @@ if [ "$PUSH" = true ]; then
         # 获取当前分支名称
         CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
         
-        # 尝试推送，如果失败且提示没有上游分支，则设置上游并再次尝试
+        # 尝试推送代码
         if ! git push 2>/tmp/git_push_error; then
             if grep -q "has no upstream branch" /tmp/git_push_error; then
                 echo -e "${YELLOW}当前分支 $CURRENT_BRANCH 没有上游分支，正在设置...${NC}"
@@ -203,22 +198,27 @@ if [ "$PUSH" = true ]; then
                 exit 1
             fi
         fi
+        
+        # 推送 tags (通过 tag 触发 CI 构建)
+        echo -e "${GREEN}推送 tags...${NC}"
+        if git push origin "v${NEW_VERSION}"; then
+             echo -e "${GREEN}✓ 已推送 tags${NC}"
+        else
+             echo -e "${RED}✗ tags 推送失败${NC}"
+        fi
+
         echo -e "${GREEN}✓ 已推送到远程仓库${NC}"
     fi
 fi
 
-# 获取脚本所在目录（在脚本开头确定，避免在函数中使用 BASH_SOURCE）
+# 获取脚本所在目录
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-# 获取 GitHub Token（先从环境变量获取，如果本地有 *.token 文件，则读取文件中 token 进行覆盖）
+# 获取 GitHub Token
 get_github_token() {
     local token="${GITHUB_TOKEN}"
-    
-    # 查找项目根目录下的 *.token 文件
     local token_file=$(find "$PROJECT_ROOT" -maxdepth 1 -name "*.token" -type f 2>/dev/null | head -n1)
-    
-    # 如果找到 token 文件，读取文件中的 token 覆盖环境变量
     if [ -n "$token_file" ] && [ -f "$token_file" ]; then
         local file_token=$(cat "$token_file" | tr -d '[:space:]')
         if [ -n "$file_token" ]; then
@@ -226,11 +226,11 @@ get_github_token() {
             echo -e "${YELLOW}从文件读取 token: $(basename "$token_file")${NC}" >&2
         fi
     fi
-    
     echo "$token"
 }
 
-# 触发 release workflow
+# 触发 release workflow (如果设置了 TRIGGER)
+# 注意: 现在 CI 是通过 tag 触发的，所以这步可能不是必需的，除非有特定的 workflow_dispatch
 if [ "$TRIGGER" = true ]; then
     echo ""
     echo -e "${GREEN}触发 release workflow...${NC}"
@@ -238,31 +238,27 @@ if [ "$TRIGGER" = true ]; then
     TOKEN=$(get_github_token)
     if [ -z "$TOKEN" ]; then
         echo -e "${RED}错误: GITHUB_TOKEN 未设置${NC}"
-        echo "请通过以下方式之一设置:"
-        echo "  1. 环境变量: export GITHUB_TOKEN=\"your_token_here\""
-        echo "  2. 创建 *.token 文件: 在项目根目录创建 *.token 文件，内容为 token"
-        exit 1
-    fi
-    
-    response=$(curl -s -w "\n%{http_code}" -X POST \
-      -H "Accept: application/vnd.github.v3+json" \
-      -H "Authorization: token $TOKEN" \
-      "https://api.github.com/repos/$REPO/dispatches" \
-      -d "{
-        \"event_type\": \"release\",
-        \"client_payload\": {
-          \"version\": \"$NEW_VERSION\"
-        }
-      }")
-    
-    http_code=$(echo "$response" | tail -n1)
-    if [ "$http_code" = "204" ]; then
-        echo -e "${GREEN}✓ Workflow 触发成功!${NC}"
-        echo "请访问以下链接查看 workflow 运行状态:"
-        echo "  https://github.com/$REPO/actions"
+        # 忽略错误，因为我们已经通过 tag 触发了构建
+        echo -e "${YELLOW}跳过手动触发 (CI 已通过 tag 推送触发)${NC}"
     else
-        echo -e "${RED}✗ 触发失败 (HTTP $http_code)${NC}"
-        exit 1
+        response=$(curl -s -w "\n%{http_code}" -X POST \
+          -H "Accept: application/vnd.github.v3+json" \
+          -H "Authorization: token $TOKEN" \
+          "https://api.github.com/repos/$REPO/dispatches" \
+          -d "{
+            \"event_type\": \"release\",
+            \"client_payload\": {
+              \"version\": \"$NEW_VERSION\"
+            }
+          }")
+        
+        http_code=$(echo "$response" | tail -n1)
+        if [ "$http_code" = "204" ]; then
+            echo -e "${GREEN}✓ Workflow 触发成功!${NC}"
+        else
+            echo -e "${RED}✗ 触发失败 (HTTP $http_code)${NC}"
+            # 不退出，因为 tag 可能已经触发了构建
+        fi
     fi
 fi
 
@@ -270,11 +266,8 @@ echo ""
 echo -e "${GREEN}完成!${NC}"
 echo ""
 echo "下一步:"
-if [ "$PUSH" = false ]; then
-    echo "  1. 检查更改: git diff $CONFIG_FILE"
-    echo "  2. 提交更改: git add $CONFIG_FILE && git commit -m 'chore: 更新版本到 v${NEW_VERSION}'"
-    echo "  3. 推送到远程: git push"
-fi
-echo "  4. 查看构建状态: https://github.com/$REPO/actions"
-echo "  5. 查看已发布的镜像: https://github.com/$REPO/pkgs/container/linknlink-remote"
+echo "  查看构建状态: https://github.com/$REPO/actions"
+echo "  查看已发布的镜像: https://github.com/orgs/linknlink/packages/container/package/linknlink-remote"
+echo ""
+
 
