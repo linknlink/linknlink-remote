@@ -27,6 +27,9 @@ COMMON_SH = APP_DIR / "common.sh" # 现在 common.sh 在 app/ 下
 # iEG认证服务地址
 IEG_AUTH_BASE_URL = os.getenv('IEG_AUTH_BASE_URL', "http://127.0.0.1:22210")
 
+# Haddons API 地址
+HADDONS_API_BASE_URL = os.getenv('HADDONS_API_BASE_URL', "http://127.0.0.1:8099")
+
 # 云端服务地址
 CLOUD_API_BASE_URL = "https://euhome.linklinkiot.com/sfsaas/api"
 HEARTBEAT_API_URL = "https://euadmin.linklinkiot.com/frpserver/api/heartbeat"

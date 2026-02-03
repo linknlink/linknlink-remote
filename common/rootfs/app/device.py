@@ -1,15 +1,30 @@
 import subprocess
 import uuid
 import syslog
+import requests
 from pathlib import Path
-from config import DEVICE_ID_FILE
+from config import DEVICE_ID_FILE, HADDONS_API_BASE_URL
 
 def get_primary_interface_mac():
     """
     获取主网卡的MAC地址
-    优先使用默认路由的网卡，如果失败则使用第一个非回环、非虚拟网卡
+    优先使用 haddons 接口获取，如果失败则尝试本地检测
     返回: MAC地址字符串，失败返回空字符串
     """
+    # 优先尝试从 haddons API 获取
+    try:
+        url = f"{HADDONS_API_BASE_URL.rstrip('/')}/addons/system/mac"
+        response = requests.get(url, timeout=5)
+        if response.status_code == 200:
+            data = response.json()
+            mac = data.get("mac", "")
+            if mac and len(mac) == 17:
+                syslog.syslog(syslog.LOG_INFO, f"Successfully retrieved MAC from haddons API: {mac}")
+                return mac
+    except Exception as e:
+        syslog.syslog(syslog.LOG_WARNING, f"Failed to get MAC from haddons API: {e}")
+
+    # 回退到原有逻辑
     try:
         # 方法1: 尝试获取默认路由的网卡
         result = subprocess.run(
