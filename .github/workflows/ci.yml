@@ -6,28 +6,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  variables:
-    runs-on: ubuntu-latest
-    outputs:
-      ARCH_LIST: ${{ env.ARCH_LIST }}
-      ADDON_LIST: ${{ env.ADDON_LIST }}
-      BUILD_ARGS: ${{ env.BUILD_ARGS }}
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: "ARGS: default" # PR or other events - test only, no push
-      run: |
-        echo "ADDON_LIST=['frpc']" >> $GITHUB_ENV
-        echo "BUILD_ARGS=--no-latest --test" >> $GITHUB_ENV
-
-    - name: "ARGS: frpc main branch" # Build and push to main branch
-      if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-      run: |
-        echo "ADDON_LIST=['frpc']" >> $GITHUB_ENV
-        echo "BUILD_ARGS=--no-cache" >> $GITHUB_ENV
-
-    - name: "ARGS: frpc docker branch" # Build and push to docker branch
-      if: github.ref == 'refs/heads/docker' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
       run: |
         echo "ADDON_LIST=['frpc']" >> $GITHUB_ENV
         echo "BUILD_ARGS=--no-cache" >> $GITHUB_ENV

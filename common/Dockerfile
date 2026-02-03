@@ -4,10 +4,8 @@ FROM ${BUILD_FROM}
 ENV LANG C.UTF-8
 ARG FRP_VERSION=0.67.0
 
-# Set shell
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 # Install dependencies, Python, and download FRPC
+# 使用默认 shell (sh) 安装 bash 和其他依赖
 RUN \
     apk add --no-cache \
     bash \
@@ -19,10 +17,14 @@ RUN \
     py3-pip \
     \
     # Install Python dependencies
-    && pip3 install --break-system-packages flask requests \
-    \
+    && pip3 install --break-system-packages flask requests
+
+# Set shell to bash for complex logic
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+
+RUN \
     # Download and install FRPC
-    && APK_ARCH=$(apk --print-arch) \
+    APK_ARCH=$(apk --print-arch) \
     && echo "Detected architecture: ${APK_ARCH}" \
     && case "${APK_ARCH}" in \
     x86_64) FRP_ARCH="amd64" ;; \
