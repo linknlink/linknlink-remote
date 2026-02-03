@@ -3,6 +3,7 @@ import json
 import os
 from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for
 
+from datetime import datetime
 from config import SERVICE_DIR, REMOTE_ASSISTANCE_FILE, VISITOR_CODE_FILE, FRPC_SERVER_URL
 from utils import generate_bind_port, get_link_value, compare_json_content
 from frpc_service import (
@@ -10,7 +11,7 @@ from frpc_service import (
     check_tmp_frpc_running, start_tmp_frpc, stop_tmp_frpc, 
     cleanup_tmp_frpc_files, register_tmp_proxy
 )
-from device import get_device_id
+from device import get_device_id, get_primary_interface_mac
 from ieg_auth import require_login
 from cloud_service import CLOUD_AUTH_INFO
 
@@ -64,7 +65,6 @@ def index():
                           tmp_frpc_running=tmp_frpc_running,
                           visitor_code=visitor_code)
 
-
 @web_bp.route('/api/status')
 @require_login
 def api_status():
@@ -74,6 +74,52 @@ def api_status():
         'frpc': frpc_running,
         'frpc_tmp': tmp_frpc_running
     })
+
+@web_bp.route('/api/service/status')
+@require_login
+def service_status():
+    frpc_running = check_frpc_running()
+    tmp_frpc_running = check_tmp_frpc_running()
+    return jsonify({
+        'success': True,
+        'data': {
+            'mainService': frpc_running,
+            'tmpService': tmp_frpc_running
+        }
+    })
+
+@web_bp.route('/api/system/mac')
+@require_login
+def system_mac():
+    mac = get_primary_interface_mac()
+    return jsonify({
+        'success': True,
+        'data': mac
+    })
+
+@web_bp.route('/api/service/start', methods=['POST'])
+@require_login
+def service_start():
+    if start_frpc():
+        return jsonify({'success': True, 'message': '服务启动成功'})
+    else:
+        return jsonify({'success': False, 'message': '服务启动失败'})
+
+@web_bp.route('/api/service/stop', methods=['POST'])
+@require_login
+def service_stop():
+    if stop_frpc():
+        return jsonify({'success': True, 'message': '服务停止成功'})
+    else:
+        return jsonify({'success': False, 'message': '服务停止失败'})
+
+@web_bp.route('/api/service/restart', methods=['POST'])
+@require_login
+def service_restart():
+    if restart_frpc():
+        return jsonify({'success': True, 'message': '服务重启成功'})
+    else:
+        return jsonify({'success': False, 'message': '服务重启失败'})
 
 @web_bp.route('/api/save_config', methods=['POST'])
 @require_login

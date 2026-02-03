@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,59 +11,59 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: #f5f5f5;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             padding: 30px;
         }
-        
+
         h1 {
             color: #333;
             margin-bottom: 30px;
             border-bottom: 2px solid #4CAF50;
             padding-bottom: 10px;
         }
-        
+
         .section {
             margin-bottom: 30px;
         }
-        
+
         .section-title {
             font-size: 18px;
             font-weight: bold;
             color: #555;
             margin-bottom: 15px;
         }
-        
+
         .config-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
         }
-        
+
         .config-table th,
         .config-table td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
-        
+
         .config-table th {
             background: #f8f9fa;
             font-weight: 600;
             color: #333;
         }
-        
+
         .config-table input {
             width: 100%;
             padding: 8px;
@@ -70,12 +71,12 @@
             border-radius: 4px;
             font-size: 14px;
         }
-        
+
         .config-table input:focus {
             outline: none;
             border-color: #4CAF50;
         }
-        
+
         .btn {
             padding: 10px 20px;
             border: none;
@@ -84,88 +85,88 @@
             font-size: 14px;
             transition: background 0.3s;
         }
-        
+
         .btn-primary {
             background: #4CAF50;
             color: white;
         }
-        
+
         .btn-primary:hover {
             background: #45a049;
         }
-        
+
         .btn-danger {
             background: #f44336;
             color: white;
         }
-        
+
         .btn-danger:hover {
             background: #da190b;
         }
-        
+
         .btn-secondary {
             background: #2196F3;
             color: white;
         }
-        
+
         .btn-secondary:hover {
             background: #0b7dda;
         }
-        
+
         .remote-assistance {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 20px;
         }
-        
+
         .remote-assistance label {
             font-weight: 600;
             color: #555;
         }
-        
+
         .remote-assistance input[type="checkbox"] {
             width: 20px;
             height: 20px;
             cursor: pointer;
         }
-        
+
         .actions {
             display: flex;
             gap: 10px;
             margin-top: 20px;
         }
-        
+
         .message {
             padding: 12px;
             border-radius: 4px;
             margin-bottom: 20px;
             display: none;
         }
-        
+
         .message.success {
             background: #d4edda;
             color: #155724;
             border: 1px solid #c3e6cb;
         }
-        
+
         .message.error {
             background: #f8d7da;
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
-        
+
         .readonly {
             background: #f5f5f5;
             color: #666;
         }
-        
+
         .btn:disabled {
             background: #ccc;
             cursor: not-allowed;
             opacity: 0.6;
         }
-        
+
         .download-link {
             margin-top: 15px;
             margin-bottom: 20px;
@@ -174,41 +175,41 @@
             border-radius: 4px;
             border-left: 4px solid #4CAF50;
         }
-        
+
         .download-link a {
             color: #4CAF50;
             text-decoration: none;
             font-weight: 600;
             font-size: 14px;
         }
-        
+
         .download-link a:hover {
             text-decoration: underline;
         }
-        
+
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        
+
         .user-info {
             font-size: 14px;
             color: #666;
         }
-        
+
         .btn-logout {
             background: #757575;
             color: white;
             padding: 8px 16px;
             font-size: 13px;
         }
-        
+
         .btn-logout:hover {
             background: #616161;
         }
-        
+
         .service-status {
             background: #f8f9fa;
             padding: 15px;
@@ -216,20 +217,20 @@
             margin-bottom: 20px;
             border-left: 4px solid #2196F3;
         }
-        
+
         .service-status h3 {
             margin: 0 0 10px 0;
             font-size: 16px;
             color: #333;
         }
-        
+
         .service-controls {
             display: flex;
             gap: 10px;
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .status-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -237,44 +238,44 @@
             font-size: 12px;
             font-weight: 600;
         }
-        
+
         .status-badge.running {
             background: #d4edda;
             color: #155724;
         }
-        
+
         .status-badge.stopped {
             background: #f8d7da;
             color: #721c24;
         }
-        
+
         .btn-start {
             background: #4CAF50;
             color: white;
         }
-        
+
         .btn-start:hover {
             background: #45a049;
         }
-        
+
         .btn-stop {
             background: #f44336;
             color: white;
         }
-        
+
         .btn-stop:hover {
             background: #da190b;
         }
-        
+
         .btn-restart {
             background: #FF9800;
             color: white;
         }
-        
+
         .btn-restart:hover {
             background: #F57C00;
         }
-        
+
         .system-info {
             background: #f8f9fa;
             padding: 15px;
@@ -282,26 +283,26 @@
             margin-bottom: 20px;
             border-left: 4px solid #9C27B0;
         }
-        
+
         .system-info h3 {
             margin: 0 0 10px 0;
             font-size: 16px;
             color: #333;
         }
-        
+
         .system-info-item {
             display: flex;
             align-items: center;
             margin-bottom: 8px;
             font-size: 14px;
         }
-        
+
         .system-info-label {
             font-weight: 600;
             color: #555;
             min-width: 120px;
         }
-        
+
         .system-info-value {
             color: #333;
             font-family: monospace;
@@ -309,16 +310,13 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>LinknLink Remote 配置管理</h1>
-            <div class="user-info">
-                <span id="userAccount"></span>
-                <button class="btn btn-logout" onclick="logout()">登出</button>
-            </div>
         </div>
-        
+
         <div class="system-info">
             <h3>系统信息</h3>
             <div class="system-info-item">
@@ -326,7 +324,7 @@
                 <span class="system-info-value" id="macAddress">加载中...</span>
             </div>
         </div>
-        
+
         <div class="service-status">
             <h3>FRPC服务状态</h3>
             <div class="service-controls">
@@ -339,13 +337,14 @@
                 <button class="btn btn-secondary" onclick="checkServiceStatus()">刷新状态</button>
             </div>
         </div>
-        
+
         <div class="download-link">
-            LinknLink Remote控制端：<a href="https://ixgdata.linklinkiot.com/ixg/frpclient-windows-amd64-latest.zip" target="_blank">下载</a>
+            LinknLink Remote控制端：<a href="https://ixgdata.linklinkiot.com/ixg/frpclient-windows-amd64-latest.zip"
+                target="_blank">下载</a>
         </div>
-        
+
         <div id="message" class="message"></div>
-        
+
         <div class="section">
             <div class="section-title">主配置</div>
             <table class="config-table">
@@ -365,19 +364,21 @@
             <button class="btn btn-secondary" onclick="addMainConfigRow()" id="addMainBtn">添加服务</button>
             <button class="btn btn-secondary" onclick="resetMainConfig()" style="margin-left: 10px;">恢复默认</button>
         </div>
-        
+
         <div class="section">
             <div class="section-title">远程协助 (RemoteAssistance)</div>
             <div class="remote-assistance">
                 <input type="checkbox" id="remoteAssistance">
                 <label for="remoteAssistance">启用远程协助</label>
             </div>
-            <div id="visitorCodeDisplay" style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; display: none;">
+            <div id="visitorCodeDisplay"
+                style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; display: none;">
                 <strong>访客码 (Visitor Code):</strong>
-                <span id="visitorCode" style="font-family: monospace; font-size: 18px; color: #4CAF50; margin-left: 10px;"></span>
+                <span id="visitorCode"
+                    style="font-family: monospace; font-size: 18px; color: #4CAF50; margin-left: 10px;"></span>
             </div>
         </div>
-        
+
         <div class="section" id="tmpConfigSection" style="display: none;">
             <div class="section-title">临时配置</div>
             <table class="config-table">
@@ -397,70 +398,24 @@
             <button class="btn btn-secondary" onclick="addTmpConfigRow()" id="addTmpBtn">添加服务</button>
             <button class="btn btn-secondary" onclick="resetTmpConfig()" style="margin-left: 10px;">恢复默认</button>
         </div>
-        
+
         <div class="actions">
             <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
             <button class="btn btn-secondary" onclick="loadConfig()">重新加载</button>
         </div>
     </div>
-    
+
     <script>
         let mainConfig = [];
         let tmpConfig = [];
-        let authCheckInterval;
-        
-        // ============= 认证和登录相关 =============
-        
-        async function checkAuth() {
-            try {
-                const response = await fetch('/frpc/api/auth/check');
-                const data = await response.json();
-                
-                if (!data.loggedIn) {
-                    // 未登录，跳转到登录页面
-                    window.location.href = '/';
-                    return false;
-                }
-                
-                // 更新用户信息显示
-                document.getElementById('userAccount').textContent = `${data.account} (${data.userid})`;
-                return true;
-            } catch (error) {
-                console.error('检查登录状态失败:', error);
-                return false;
-            }
-        }
-        
-        async function logout() {
-            if (!confirm('确定要登出吗？')) {
-                return;
-            }
-            
-            try {
-                await fetch('/frpc/api/auth/logout', { method: 'POST' });
-                window.location.href = '/';
-            } catch (error) {
-                showMessage('登出失败: ' + error.message, 'error');
-            }
-        }
-        
-        // 定时检查登录状态（每5分钟检查一次）
-        function startAuthCheck() {
-            authCheckInterval = setInterval(async () => {
-                const loggedIn = await checkAuth();
-                if (!loggedIn) {
-                    clearInterval(authCheckInterval);
-                }
-            }, 5 * 60 * 1000);
-        }
-        
+
         // ============= 系统信息 =============
-        
+
         async function loadSystemInfo() {
             try {
-                const response = await fetch('/frpc/api/system/mac');
+                const response = await fetch('/api/system/mac');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const macAddress = data.data || '';
                     const macElement = document.getElementById('macAddress');
@@ -472,8 +427,6 @@
                             macElement.style.color = '#999';
                         }
                     }
-                } else if (data.needLogin) {
-                    window.location.href = '/';
                 }
             } catch (error) {
                 console.error('加载系统信息失败:', error);
@@ -484,21 +437,21 @@
                 }
             }
         }
-        
+
         // ============= 服务状态和控制 =============
-        
+
         async function checkServiceStatus() {
             try {
-                const response = await fetch('/frpc/api/service/status');
+                const response = await fetch('/api/service/status');
                 const data = await response.json();
-                
+
                 if (data.success) {
                     const mainRunning = data.data.mainService;
                     const statusBadge = document.getElementById('mainServiceStatus');
                     const btnStart = document.getElementById('btnStart');
                     const btnStop = document.getElementById('btnStop');
                     const btnRestart = document.getElementById('btnRestart');
-                    
+
                     if (mainRunning) {
                         statusBadge.textContent = '运行中';
                         statusBadge.className = 'status-badge running';
@@ -512,35 +465,30 @@
                         btnStop.disabled = true;
                         btnRestart.disabled = true;
                     }
-                } else if (data.needLogin) {
-                    window.location.href = '/';
                 }
             } catch (error) {
                 console.error('检查服务状态失败:', error);
             }
         }
-        
+
         async function startService() {
             if (!confirm('确定要启动FRPC服务吗？')) {
                 return;
             }
-            
+
             const btn = document.getElementById('btnStart');
             btn.disabled = true;
             btn.textContent = '启动中...';
-            
+
             try {
-                const response = await fetch('/frpc/api/service/start', { method: 'POST' });
+                const response = await fetch('/api/service/start', { method: 'POST' });
                 const data = await response.json();
-                
+
                 if (data.success) {
                     showMessage(data.message, 'success');
                     await checkServiceStatus();
                 } else {
                     showMessage(data.message || '启动服务失败', 'error');
-                    if (data.needLogin) {
-                        setTimeout(() => window.location.href = '/', 2000);
-                    }
                 }
             } catch (error) {
                 showMessage('启动服务失败: ' + error.message, 'error');
@@ -549,28 +497,25 @@
                 await checkServiceStatus();
             }
         }
-        
+
         async function stopService() {
             if (!confirm('确定要停止FRPC服务吗？这将断开所有远程连接。')) {
                 return;
             }
-            
+
             const btn = document.getElementById('btnStop');
             btn.disabled = true;
             btn.textContent = '停止中...';
-            
+
             try {
-                const response = await fetch('/frpc/api/service/stop', { method: 'POST' });
+                const response = await fetch('/api/service/stop', { method: 'POST' });
                 const data = await response.json();
-                
+
                 if (data.success) {
                     showMessage(data.message, 'success');
                     await checkServiceStatus();
                 } else {
                     showMessage(data.message || '停止服务失败', 'error');
-                    if (data.needLogin) {
-                        setTimeout(() => window.location.href = '/', 2000);
-                    }
                 }
             } catch (error) {
                 showMessage('停止服务失败: ' + error.message, 'error');
@@ -579,28 +524,25 @@
                 await checkServiceStatus();
             }
         }
-        
+
         async function restartService() {
             if (!confirm('确定要重启FRPC服务吗？这将暂时断开所有远程连接。')) {
                 return;
             }
-            
+
             const btn = document.getElementById('btnRestart');
             btn.disabled = true;
             btn.textContent = '重启中...';
-            
+
             try {
-                const response = await fetch('/frpc/api/service/restart', { method: 'POST' });
+                const response = await fetch('/api/service/restart', { method: 'POST' });
                 const data = await response.json();
-                
+
                 if (data.success) {
                     showMessage(data.message, 'success');
                     await checkServiceStatus();
                 } else {
                     showMessage(data.message || '重启服务失败', 'error');
-                    if (data.needLogin) {
-                        setTimeout(() => window.location.href = '/', 2000);
-                    }
                 }
             } catch (error) {
                 showMessage('重启服务失败: ' + error.message, 'error');
@@ -609,61 +551,61 @@
                 await checkServiceStatus();
             }
         }
-        
+
         // ============= 原有的配置管理函数 =============
         let remoteAssistance = false;
         let visitorCode = '';
-        
+
         // 加载配置
         async function loadConfig() {
             try {
                 // 加载主配置
-                const mainResponse = await fetch('/frpc/api/config/main');
+                const mainResponse = await fetch('/api/config/main');
                 const mainData = await mainResponse.json();
                 if (mainData.success) {
                     mainConfig = mainData.data || [];
                 }
-                
+
                 // 加载临时配置
-                const tmpResponse = await fetch('/frpc/api/config/tmp');
+                const tmpResponse = await fetch('/api/config/tmp');
                 const tmpData = await tmpResponse.json();
                 if (tmpData.success) {
                     tmpConfig = tmpData.data || [];
                 }
-                
+
                 // 加载RemoteAssistance
-                const raResponse = await fetch('/frpc/api/config/remote-assistance');
+                const raResponse = await fetch('/api/config/remote-assistance');
                 const raData = await raResponse.json();
                 if (raData.success) {
                     remoteAssistance = raData.data || false;
                 }
-                
+
                 // 加载访客码
-                const vcResponse = await fetch('/frpc/api/config/visitor-code');
+                const vcResponse = await fetch('/api/config/visitor-code');
                 const vcData = await vcResponse.json();
                 if (vcData.success) {
                     visitorCode = vcData.data || '';
                 }
-                
+
                 renderConfig();
                 showMessage('配置加载成功', 'success');
             } catch (error) {
                 showMessage('加载配置失败: ' + error.message, 'error');
             }
         }
-        
+
         // 渲染配置表格
         function renderConfig() {
             renderMainConfig();
             renderTmpConfig();
             document.getElementById('remoteAssistance').checked = remoteAssistance;
-            
+
             // 根据RemoteAssistance状态显示/隐藏临时配置
             const tmpConfigSection = document.getElementById('tmpConfigSection');
             if (tmpConfigSection) {
                 tmpConfigSection.style.display = remoteAssistance ? 'block' : 'none';
             }
-            
+
             // 更新添加按钮状态（最多10个）
             const addMainBtn = document.getElementById('addMainBtn');
             const addTmpBtn = document.getElementById('addTmpBtn');
@@ -675,7 +617,7 @@
                 addTmpBtn.disabled = tmpConfig.length >= 10;
                 addTmpBtn.textContent = tmpConfig.length >= 10 ? '已达到最大数量(10)' : '添加服务';
             }
-            
+
             // 显示访客码
             const visitorCodeDisplay = document.getElementById('visitorCodeDisplay');
             const visitorCodeSpan = document.getElementById('visitorCode');
@@ -686,41 +628,41 @@
                 visitorCodeDisplay.style.display = 'none';
             }
         }
-        
+
         // 渲染主配置表格
         function renderMainConfig() {
             const tbody = document.getElementById('mainConfigTable');
             tbody.innerHTML = '';
-            
+
             mainConfig.forEach((item, index) => {
                 const row = createConfigRow(item, index, 'main');
                 tbody.appendChild(row);
             });
-            
+
             if (mainConfig.length === 0) {
                 addMainConfigRow();
             }
         }
-        
+
         // 渲染临时配置表格
         function renderTmpConfig() {
             const tbody = document.getElementById('tmpConfigTable');
             tbody.innerHTML = '';
-            
+
             tmpConfig.forEach((item, index) => {
                 const row = createConfigRow(item, index, 'tmp');
                 tbody.appendChild(row);
             });
-            
+
             if (tmpConfig.length === 0) {
                 addTmpConfigRow();
             }
         }
-        
+
         // 创建配置行
         function createConfigRow(item, index, type) {
             const row = document.createElement('tr');
-            
+
             // 服务名称
             const nameCell = document.createElement('td');
             const nameInput = document.createElement('input');
@@ -734,7 +676,7 @@
                 }
             };
             nameCell.appendChild(nameInput);
-            
+
             // 本地端口
             const portCell = document.createElement('td');
             const portInput = document.createElement('input');
@@ -754,7 +696,7 @@
                 renderConfig();
             };
             portCell.appendChild(portInput);
-            
+
             // 绑定端口（只读）
             const bindPortCell = document.createElement('td');
             const bindPortInput = document.createElement('input');
@@ -763,7 +705,7 @@
             bindPortInput.readOnly = true;
             bindPortInput.className = 'readonly';
             bindPortCell.appendChild(bindPortInput);
-            
+
             // 链接（只读）
             const linkCell = document.createElement('td');
             const linkInput = document.createElement('input');
@@ -772,7 +714,7 @@
             linkInput.readOnly = true;
             linkInput.className = 'readonly';
             linkCell.appendChild(linkInput);
-            
+
             // 操作
             const actionCell = document.createElement('td');
             const deleteBtn = document.createElement('button');
@@ -796,38 +738,38 @@
                 renderConfig();
             };
             actionCell.appendChild(deleteBtn);
-            
+
             row.appendChild(nameCell);
             row.appendChild(portCell);
             row.appendChild(bindPortCell);
             row.appendChild(linkCell);
             row.appendChild(actionCell);
-            
+
             return row;
         }
-        
+
         // 生成bindPort
         function generateBindPort(localPort, prefix) {
             localPort = parseInt(localPort);
-            
+
             if (localPort >= 10000) {
                 return null;
             }
-            
+
             if (localPort < 1000) {
                 const portStr = String(localPort);
                 const zerosNeeded = 4 - portStr.length;
                 const paddedPort = '0'.repeat(zerosNeeded) + portStr;
                 return parseInt(prefix + paddedPort);
             }
-            
+
             if (localPort >= 1000 && localPort <= 9999) {
                 return parseInt(prefix + String(localPort));
             }
-            
+
             return null;
         }
-        
+
         // 添加主配置行（最多10个）
         function addMainConfigRow() {
             if (mainConfig.length >= 10) {
@@ -842,7 +784,7 @@
             });
             renderMainConfig();
         }
-        
+
         // 添加临时配置行（最多10个）
         function addTmpConfigRow() {
             if (tmpConfig.length >= 10) {
@@ -857,7 +799,7 @@
             });
             renderTmpConfig();
         }
-        
+
         // 恢复主配置为默认
         async function resetMainConfig() {
             if (!confirm('确定要恢复主配置为默认值吗？当前配置将被覆盖。')) {
@@ -878,7 +820,7 @@
                 showMessage('恢复失败: ' + error.message, 'error');
             }
         }
-        
+
         // 恢复临时配置为默认
         async function resetTmpConfig() {
             if (!confirm('确定要恢复临时配置为默认值吗？当前配置将被覆盖。')) {
@@ -899,31 +841,31 @@
                 showMessage('恢复失败: ' + error.message, 'error');
             }
         }
-        
+
         // 保存配置
         async function saveConfig() {
             try {
                 remoteAssistance = document.getElementById('remoteAssistance').checked;
-                
+
                 // 验证：主配置至少有一个
                 if (mainConfig.length === 0) {
                     showMessage('主配置至少需要有一个服务', 'error');
                     return;
                 }
-                
+
                 // 验证：远程协助启用时，临时配置至少有一个
                 if (remoteAssistance && tmpConfig.length === 0) {
                     showMessage('启用远程协助时，临时配置至少需要有一个服务', 'error');
                     return;
                 }
-                
+
                 // 构建要保存的配置数据
                 const configToSave = {
                     mainConfig: mainConfig,
                     tmpConfig: remoteAssistance ? tmpConfig : [],
                     remoteAssistance: remoteAssistance
                 };
-                
+
                 const response = await fetch('/frpc/api/config/save', {
                     method: 'POST',
                     headers: {
@@ -931,7 +873,7 @@
                     },
                     body: JSON.stringify(configToSave)
                 });
-                
+
                 const data = await response.json();
                 if (data.success) {
                     showMessage(data.message || '配置保存成功', 'success');
@@ -955,24 +897,24 @@
                 showMessage('保存配置失败: ' + error.message, 'error');
             }
         }
-        
+
         // 显示消息
         function showMessage(message, type) {
             const messageEl = document.getElementById('message');
             messageEl.textContent = message;
             messageEl.className = `message ${type}`;
             messageEl.style.display = 'block';
-            
+
             setTimeout(() => {
                 messageEl.style.display = 'none';
             }, 3000);
         }
-        
+
         // RemoteAssistance复选框变化时更新显示
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const remoteAssistanceCheckbox = document.getElementById('remoteAssistance');
             if (remoteAssistanceCheckbox) {
-                remoteAssistanceCheckbox.addEventListener('change', function() {
+                remoteAssistanceCheckbox.addEventListener('change', function () {
                     const tmpConfigSection = document.getElementById('tmpConfigSection');
                     if (tmpConfigSection) {
                         tmpConfigSection.style.display = this.checked ? 'block' : 'none';
@@ -980,31 +922,22 @@
                 });
             }
         });
-        
+
         // 页面加载时初始化
-        window.onload = async function() {
-            // 检查登录状态
-            const loggedIn = await checkAuth();
-            if (!loggedIn) {
-                return;
-            }
-            
-            // 启动定时检查登录状态
-            startAuthCheck();
-            
+        window.onload = async function () {
             // 加载系统信息
             await loadSystemInfo();
-            
+
             // 检查服务状态
             await checkServiceStatus();
-            
+
             // 加载配置
             await loadConfig();
-            
+
             // 定时刷新服务状态（每30秒）
             setInterval(checkServiceStatus, 30 * 1000);
         };
     </script>
 </body>
-</html>
 
+</html>
