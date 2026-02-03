@@ -1,8 +1,8 @@
 [
     {
-        "localIp": "127.0.0.1",
-        "localPort": "22",
-        "remotePort": "",
-        "type": "tcp"
+        "serviceName": "HomeAssistant",
+        "localPort": 8123,
+        "bindPort": 38123,
+        "link": true
     }
 ]

@@ -76,22 +76,75 @@ def restart_frpc():
         syslog.syslog(syslog.LOG_ERR, f"重启frpc服务异常: {str(e)}")
         return False
 
+# 注册代理函数
+def convert_to_cloud_format(input_file, output_file):
+    """
+    将前端友好的配置格式转换为 Cloud API 需要的格式
+    Front: [{"serviceName": "SSH", "localPort": 22, "bindPort": 30022, "link": false}, ...]
+    Cloud: [{"localIp": "127.0.0.1", "localPort": "22", "remotePort": "30022", "type": "tcp"}, ...]
+    """
+    try:
+        if not input_file.exists():
+            return False
+            
+        with open(input_file, 'r') as f:
+            data = json.load(f)
+            
+        cloud_data = []
+        for item in data:
+            try:
+                # 确保必需字段存在
+                local_port = str(item.get('localPort', ''))
+                remote_port = str(item.get('bindPort', ''))
+                
+                if local_port and remote_port:
+                    cloud_data.append({
+                        "localIp": "127.0.0.1",
+                        "localPort": local_port,
+                        "remotePort": remote_port,
+                        "type": "tcp"
+                        # serviceName is ignored by cloud API for now, or maybe used if we add it? 
+                        # Cloud API spec usually just needs ip/port/type.
+                    })
+            except:
+                continue
+                
+        with open(output_file, 'w') as f:
+            json.dump(cloud_data, f, indent=4)
+            
+        return True
+    except Exception as e:
+        syslog.syslog(syslog.LOG_ERR, f"Config conversion failed: {str(e)}")
+        return False
+
 def register_frpc_proxy():
     """调用register_frpc_proxy函数重新注册代理（设置REGISTER_FORCE环境变量）"""
     try:
         if not COMMON_SH.exists():
-            # 兼容性处理，如果 common.sh 不在 APP_DIR (config.py 中定义的 COMMON_SH 路径)
-            # 尝试在 SCRIPT_DIR 下查找 (原 web_config.py 逻辑)
-            # 但我们在 config.py 中已经指向了 APP_DIR/common.sh，这是新的正确位置
             syslog.syslog(syslog.LOG_ERR, f"common.sh不存在: {COMMON_SH}")
             return False
         
-        # 设置环境变量并调用register_frpc_proxy函数
+        # 1. 转换配置格式
+        input_file = SERVICE_DIR / "register_proxy.json"
+        cloud_file = SERVICE_DIR / "register_proxy_cloud.json"
+        
+        # 如果不存在，尝试从模板复制 (web_routes 里也做了类似事情，这里双重保险)
+        if not input_file.exists():
+             template_file = SCRIPT_DIR / "conf" / "register_proxy.json"
+             if template_file.exists():
+                 import shutil
+                 shutil.copy(template_file, input_file)
+        
+        if not convert_to_cloud_format(input_file, cloud_file):
+             syslog.syslog(syslog.LOG_ERR, "Failed to convert register_proxy.json to cloud format")
+             return False
+
+        # 2. 设置环境变量并调用register_frpc_proxy函数
         env = os.environ.copy()
         env['REGISTER_FORCE'] = 'true'
+        env['PROXY_JSON_FILE'] = str(cloud_file) # 传递转换后的文件
         
         # 执行bash命令调用register_frpc_proxy函数
-        # 注意：这里需要确保 SCRIPT_DIR 是 common.sh 所在的目录，或者正确 cd
         cmd = f"""
         cd {SCRIPT_DIR} && \
         source {COMMON_SH} && \
@@ -137,7 +190,13 @@ def start_tmp_frpc():
         config_file = SERVICE_DIR / "frpc_tmp.toml"
         if not config_file.exists(): return False
         frpc_binary = SERVICE_DIR / "bin" / "frpc"
-        if not frpc_binary.exists(): return False
+        if not frpc_binary.exists(): 
+            # 尝试系统路径
+            import shutil
+            frpc_binary = shutil.which("frpc") or "/usr/bin/frpc"
+            if not frpc_binary or not os.path.exists(frpc_binary):
+                 return False
+
         log_file = open(SERVICE_DIR / "frpc_tmp.log", 'a')
         process = subprocess.Popen([str(frpc_binary), '-c', str(config_file)], stdout=log_file, stderr=subprocess.STDOUT, start_new_session=True)
         pid_file = SERVICE_DIR / "frpc_tmp.pid"
@@ -171,8 +230,27 @@ def cleanup_tmp_frpc_files():
 
 def register_tmp_proxy():
     try:
+        # 1. 转换配置格式
+        input_file = SERVICE_DIR / "register_proxy_tmp.json"
+        cloud_file = SERVICE_DIR / "register_proxy_tmp_cloud.json"
+        
+        # 如果不存在，尝试从模板复制
+        if not input_file.exists():
+             template_file = SCRIPT_DIR / "conf" / "register_proxy_tmp.json"
+             if template_file.exists():
+                 import shutil
+                 shutil.copy(template_file, input_file)
+        
+        if not convert_to_cloud_format(input_file, cloud_file):
+             return False, "Failed to convert tmp config format"
+
+        # 2. 调用 common.sh
+        env = os.environ.copy()
+        env['PROXY_JSON_FILE'] = str(cloud_file)
+        
         cmd = f'cd {SCRIPT_DIR} && source {COMMON_SH} && register_tmp_frpc_proxy'
-        result = subprocess.run(['bash', '-c', cmd], capture_output=True, text=True, env=os.environ.copy())
+        result = subprocess.run(['bash', '-c', cmd], capture_output=True, text=True, env=env)
+        
         if result.returncode == 0:
             visitor_code = ""
             for line in result.stdout.split('\n'):
