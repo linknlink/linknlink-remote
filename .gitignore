@@ -19,3 +19,12 @@ __pycache__/
 # OS
 .DS_Store
 Thumbs.db
+
+# Local dev
+.local_dev/
+app_run.log
+common/rootfs/app/app.log
+common/rootfs/app/app.pid
+common/rootfs/app/register_proxy.json
+common/rootfs/app/register_proxy_cloud.json
+common/rootfs/runtime/
