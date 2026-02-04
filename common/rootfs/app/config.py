@@ -6,9 +6,12 @@ from datetime import timedelta
 _script_file = Path(__file__).resolve()
 APP_DIR = _script_file.parent         # app/
 
+# 运行时目录
+RUNTIME_DIR = APP_DIR.parent / "runtime"
+
 # 服务配置目录（支持环境变量覆盖）
-SERVICE_DIR = Path(os.getenv('SERVICE_DIR', '/etc/frpc'))
-DATA_DIR = Path(os.getenv('DATA_DIR', '/data'))
+SERVICE_DIR = Path(os.getenv('SERVICE_DIR', RUNTIME_DIR / "etc"))
+DATA_DIR = Path(os.getenv('DATA_DIR', RUNTIME_DIR / "data"))
 
 REMOTE_ASSISTANCE_FILE = SERVICE_DIR / "remote_assistance"
 VISITOR_CODE_FILE = SERVICE_DIR / "visitor_code"

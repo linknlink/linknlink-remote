@@ -37,38 +37,14 @@ if __name__ == '__main__':
     # 延迟导入，确保顶层导入不触发环境副作用
     import config
     
-    # 核心路径初始化逻辑：支持本地宿主机运行目录切换
-    # 策略：如果不是 root 用户运行，或者全局路径不可写，则自动切换到本地 runtime 目录
-    use_runtime_fallback = False
-    
-    if os.getuid() != 0:
-        logger.info("非 root 用户运行，将使用本地 runtime 目录...")
-        use_runtime_fallback = True
-    else:
-        try:
-            config.SERVICE_DIR.mkdir(parents=True, exist_ok=True)
-            config.DATA_DIR.mkdir(parents=True, exist_ok=True)
-            # 测试是否真正可写
-            test_file = config.DATA_DIR / ".write_test"
-            test_file.touch()
-            test_file.unlink()
-        except (PermissionError, OSError):
-            logger.warning("默认路径不可写，降级到本地 runtime 目录...")
-            use_runtime_fallback = True
-
-    if use_runtime_fallback:
-        runtime_root = config.APP_DIR.parent / "runtime"
-        config.SERVICE_DIR = runtime_root / "etc"
-        config.DATA_DIR = runtime_root / "data"
-        
+    # 核心路径初始化逻辑：确保配置和数据目录存在
+    try:
         config.SERVICE_DIR.mkdir(parents=True, exist_ok=True)
         config.DATA_DIR.mkdir(parents=True, exist_ok=True)
-        
-        # 同步更新依赖路径
-        config.REMOTE_ASSISTANCE_FILE = config.SERVICE_DIR / "remote_assistance"
-        config.VISITOR_CODE_FILE = config.SERVICE_DIR / "visitor_code"
-        config.DEVICE_ID_FILE = config.DATA_DIR / "device_id.txt"
-        logger.info(f"已设置运行目录: SERVICE_DIR={config.SERVICE_DIR}, DATA_DIR={config.DATA_DIR}")
+        logger.info(f"运行目录初始化成功: SERVICE_DIR={config.SERVICE_DIR}, DATA_DIR={config.DATA_DIR}")
+    except Exception as e:
+        logger.error(f"无法初始化运行目录: {e}")
+        # 如果默认目录不可用，可以根据需要决定是否退出或继续
 
     # 使用更新后的路径
     SERVICE_DIR = config.SERVICE_DIR
