@@ -70,8 +70,8 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
         # 构造请求数据
         payload = {
             "did": device_id,
-            "name": "iEG",
-            "type": 1,
+            "name": "iSG",
+            "type": 0,
             "account": CLOUD_AUTH_INFO.get('account', ''),
             "proxyList": proxy_list
         }

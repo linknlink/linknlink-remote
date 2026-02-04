@@ -20,6 +20,49 @@ from cloud_service import CLOUD_AUTH_INFO
 # 创建 Blueprint
 web_bp = Blueprint('web', __name__)
 
+@web_bp.before_request
+def before_request_logging():
+    """在请求处理前记录日志"""
+    # 仅对 API 接口进行日志记录 (以 /api/ 开头的路径)
+    if request.path.startswith('/api/'):
+        log_msg = f"API Request: {request.method} {request.path}"
+        if request.args:
+            log_msg += f", Args: {json.dumps(request.args.to_dict())}"
+        if request.is_json:
+            # 避免记录过大的 payload 或敏感数据，这里做个简单截断
+            body = request.get_json(silent=True)
+            if body:
+                body_str = json.dumps(body)
+                if len(body_str) > 500:
+                    body_str = body_str[:500] + "..."
+                log_msg += f", Body: {body_str}"
+        syslog.syslog(syslog.LOG_INFO, log_msg)
+
+@web_bp.after_request
+def after_request_logging(response):
+    """在请求处理后记录日志"""
+    if request.path.startswith('/api/'):
+        status_code = response.status_code
+        log_msg = f"API Response: {request.method} {request.path}, Status: {status_code}"
+        
+        # 如果是 JSON 响应，记录数据概览
+        if response.is_json:
+            try:
+                data = response.get_json()
+                if isinstance(data, dict):
+                    # 摘取关键字段
+                    summary = {k: v for k, v in data.items() if k in ['success', 'message', 'data']}
+                    # 对 data 字段进一步缩减
+                    if 'data' in summary and isinstance(summary['data'], (list, dict)) and len(json.dumps(summary['data'])) > 200:
+                        summary['data'] = "..."
+                    log_msg += f", Result: {json.dumps(summary, ensure_ascii=False)}"
+            except:
+                pass
+                
+        syslog.syslog(syslog.LOG_INFO, log_msg)
+    return response
+
+
 @web_bp.route('/')
 @require_login
 def index():
