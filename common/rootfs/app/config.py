@@ -29,6 +29,10 @@ HEARTBEAT_API_URL = "https://euadmin.linklinkiot.com/frpserver/api/heartbeat"
 PROXY_API_URL = "https://euadmin.linklinkiot.com/frpserver/api/proxy"
 TMP_PROXY_API_URL = "https://euadmin.linklinkiot.com/frpserver/api/tmp-proxy"
 
+# 代理目标IP (默认为 127.0.0.1，Docker Bridge 模式下应通过环境变量覆盖为 host.docker.internal)
+TARGET_IP = os.getenv('TARGET_IP', "127.0.0.1")
+
+
 
 # ================= Web配置 =================
 SECRET_KEY = os.urandom(24)

@@ -5,10 +5,18 @@ services:
     image: ghcr.io/linknlink/linknlink-remote:v1.0.42
     container_name: linknlink-remote
     restart: unless-stopped
-    network_mode: host
     environment:
       # 必需配置
 
       # 可选配置
-      # 使用 host 网络模式，无需暴露端口
-      # 注意：host 模式下，容器直接使用宿主机网络，可以访问宿主机上的服务
+      # Haddons API 地址 (默认为宿主机 8099 端口)
+      # 在 bridge 模式下，使用 host.docker.internal 访问宿主机
+      HADDONS_API_BASE_URL: ${HADDONS_API_BASE_URL:-http://host.docker.internal:8099}
+      # 代理目标地址 (Bridge模式: host.docker.internal)
+      TARGET_IP: ${TARGET_IP:-host.docker.internal}
+      # 网络模式配置: Bridge 模式 (默认)
+      # 端口映射和 host 解析
+    ports:
+      - "8888:8888"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

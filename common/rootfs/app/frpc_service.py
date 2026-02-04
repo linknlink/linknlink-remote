@@ -152,7 +152,7 @@ def convert_to_cloud_format(input_file, output_file):
                 
                 if local_port and remote_port:
                     cloud_data.append({
-                        "localIp": "127.0.0.1",
+                        "localIp": config.TARGET_IP,
                         "localPort": local_port,
                         "remotePort": remote_port,
                         "type": "tcp"
