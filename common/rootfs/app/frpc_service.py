@@ -33,17 +33,26 @@ def start_frpc():
             logger.info("frpc.toml 不存在，跳过启动 frpc")
             return False
         
-        # 优先查找本地路径
-        frpc_binary = config.SERVICE_DIR / "bin" / "frpc"
-        if not frpc_binary.exists():
-            frpc_binary = "/usr/local/bin/frpc"
+        # 二进制查找策略
+        search_paths = [
+            config.SERVICE_DIR / "bin" / "frpc",                        # 1. 自定义或默认配置目录下的 bin
+            config.RUNTIME_DIR / "etc" / "bin" / "frpc",               # 2. 默认的本地 runtime 目录
+            Path("/usr/local/bin/frpc"),                                # 3. 标准系统路径
+            Path("/usr/bin/frpc"),                                      # 4. 备选系统路径
+            Path(shutil.which("frpc") or "/usr/bin/frpc")               # 5. PATH 环境变量
+        ]
+        
+        frpc_binary = None
+        for path in search_paths:
+            if path and os.path.exists(path):
+                frpc_binary = path
+                break
+                
+        if not frpc_binary:
+            logger.error("frpc 二进制文件不存在，已尝试路径: " + ", ".join(str(p) for p in search_paths))
+            return False
             
-        if not os.path.exists(frpc_binary):
-            # 尝试备选路径
-            frpc_binary = shutil.which("frpc") or "/usr/bin/frpc"
-            if not frpc_binary or not os.path.exists(frpc_binary):
-                logger.error("frpc 二进制文件不存在")
-                return False
+        logger.info(f"使用 frpc 二进制: {frpc_binary}")
             
         # 启动 frpc 进程
         log_file_path = config.SERVICE_DIR / "frpc.log"
