@@ -19,7 +19,6 @@ linknlink-remote/
 │   │   │   ├── frpc_service.py   # Frpc 进程生命周期管理
 │   │   │   ├── ieg_auth.py       # 本地 IEG 认证中间件
 │   │   │   └── web_routes.py     # Web UI 路由与 API
-│   │   ├── common.sh       # 历史遗留 Shell 逻辑 (被 Python 调用)
 │   │   └── docker-entrypoint.sh  # Docker 容器启动脚本
 │   └── Dockerfile          # 容器镜像构建文件
 ├── scripts/                # 发布与构建脚本 (build-release.sh)
@@ -34,7 +33,7 @@ linknlink-remote/
 | 模块名 | 职能描述 |
 | :--- | :--- |
 | **`main.py`** | **程序大脑**。初始化 Flask 应用、启动后台心跳线程、检查 Frpc 配置文件并根据需要启动 Frpc 进程。同时也定义了 Flask 的启动参数（默认端口 8888）。 |
-| **`config.py`** | **配置中枢**。统一管理所有文件路径（SERVICE_DIR, DATA_DIR）、环境变量（AUTH_EMAIL, AUTH_PASSWORD）以及云端 API 地址。支持通过环境变量覆盖路径，方便本地开发。 |
+| **`config.py`** | **配置中枢**。统一管理所有文件路径（SERVICE_DIR, DATA_DIR）以及云端 API 地址。支持通过环境变量覆盖路径，方便本地开发。 |
 | **`web_routes.py`** | **Web 交互**。定义所有的 HTTP 路由，包括首页展示、登录退出、API 配置保存、服务重启等逻辑。 |
 
 ### 业务逻辑模块

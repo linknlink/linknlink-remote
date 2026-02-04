@@ -2,7 +2,7 @@ import syslog
 import requests
 import time
 import os
-from config import CLOUD_API_BASE_URL, HEARTBEAT_API_URL, AUTH_EMAIL, AUTH_PASSWORD
+from config import CLOUD_API_BASE_URL, HEARTBEAT_API_URL, PROXY_API_URL, TMP_PROXY_API_URL
 from utils import enc_password
 from device import get_device_id
 
@@ -57,6 +57,70 @@ def cloud_login(email, password):
         syslog.syslog(syslog.LOG_ERR, f"Cloud login exception: {str(e)}")
     
     return False
+def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
+    """
+    向云端注册 frp 代理
+    """
+    try:
+        from device import get_device_id
+        device_id = get_device_id()
+        
+        url = TMP_PROXY_API_URL if is_tmp else PROXY_API_URL
+        
+        # 构造请求数据
+        payload = {
+            "did": device_id,
+            "name": "iEG",
+            "type": 1,
+            "account": CLOUD_AUTH_INFO.get('account', ''),
+            "proxyList": proxy_list
+        }
+        
+        if not is_tmp:
+            payload["heartbeat"] = 1
+
+        # 构造头部
+        headers = {
+            "Content-Type": "application/json"
+        }
+        if CLOUD_AUTH_INFO.get('company_id'):
+            headers["companyid"] = str(CLOUD_AUTH_INFO['company_id'])
+        if CLOUD_AUTH_INFO.get('user_id'):
+            headers["userid"] = str(CLOUD_AUTH_INFO['user_id'])
+        
+        if force:
+            headers["register-force"] = "true"
+
+        syslog.syslog(syslog.LOG_INFO, f"Registering {'tmp ' if is_tmp else ''}proxy to cloud: {url}")
+        response = requests.post(url, json=payload, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            # 检查是否是 JSON 错误响应
+            try:
+                data = response.json()
+                status = data.get('status')
+                if status is not None and str(status) != "0":
+                    msg = data.get('msg') or data.get('message')
+                    syslog.syslog(syslog.LOG_ERR, f"Cloud registration failed (API logic): {msg}")
+                    return None, msg
+            except ValueError:
+                # 不是 JSON，说明返回的是 toml 配置文件内容
+                pass
+            
+            # 获取配置文件内容
+            config_content = response.text
+            
+            # 尝试从响应头获取 Visitor Code (针对临时代理)
+            visitor_code = response.headers.get('X-Visitor-Code', '')
+            
+            return config_content, visitor_code
+        else:
+            syslog.syslog(syslog.LOG_ERR, f"Cloud registration failed with HTTP {response.status_code}")
+            return None, f"HTTP {response.status_code}"
+            
+    except Exception as e:
+        syslog.syslog(syslog.LOG_ERR, f"Cloud registration exception: {str(e)}")
+        return None, str(e)
 
 def send_heartbeat():
     """发送心跳到云端"""
@@ -92,14 +156,6 @@ def heartbeat_loop():
     """后台心跳线程"""
     syslog.syslog(syslog.LOG_INFO, "Starting heartbeat loop...")
     
-    # Initial Login
-    email = AUTH_EMAIL
-    password = AUTH_PASSWORD
-    
-    if not email or not password:
-        syslog.syslog(syslog.LOG_ERR, "AUTH_EMAIL or AUTH_PASSWORD not set, heartbeat disabled")
-        return
-
     # 获取 Device ID
     CLOUD_AUTH_INFO['device_id'] = get_device_id()
     

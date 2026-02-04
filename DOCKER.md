@@ -5,7 +5,6 @@
 ## 前置要求
 
 - Docker 和 Docker Compose 已安装
-- LinknLink 平台账号（邮箱和密码）
 
 ## 快速开始
 
@@ -14,10 +13,6 @@
 创建 `.env` 文件（或直接在 docker-compose.yml 中设置环境变量）：
 
 ```bash
-# 必需配置
-AUTH_EMAIL=your-email@example.com
-AUTH_PASSWORD=your-password
-
 # 可选配置
 LOG_LEVEL=info
 CONFIG_FILE=/config/frpc.toml
@@ -50,8 +45,6 @@ docker-compose logs -f
 
 | 变量名 | 必需 | 默认值 | 说明 |
 |--------|------|--------|------|
-| `AUTH_EMAIL` | 是 | - | LinknLink 平台登录邮箱 |
-| `AUTH_PASSWORD` | 是 | - | LinknLink 平台登录密码 |
 | `LOG_LEVEL` | 否 | `info` | 日志级别：trace, debug, info, notice, warning, error, fatal |
 | `CONFIG_FILE` | 否 | `/config/frpc.toml` | FRPC 配置文件路径 |
 | `DATA_DIR` | 否 | `/data` | 数据目录路径（用于持久化设备ID等） |

@@ -8,8 +8,7 @@ services:
     network_mode: host
     environment:
       # 必需配置
-      - AUTH_EMAIL=${AUTH_EMAIL}
-      - AUTH_PASSWORD=${AUTH_PASSWORD}
+
       # 可选配置
       - LOG_LEVEL=${LOG_LEVEL:-info}
       - CONFIG_FILE=${CONFIG_FILE:-/config/frpc.toml}

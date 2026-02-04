@@ -5,7 +5,7 @@ import json
 import time
 from pathlib import Path
 
-from config import SCRIPT_DIR, COMMON_SH, VISITOR_CODE_FILE, DATA_DIR, AUTH_EMAIL, AUTH_PASSWORD
+from config import SCRIPT_DIR, VISITOR_CODE_FILE, DATA_DIR
 import config
 from utils import prepare_env, compare_json_content, generate_bind_port, get_link_value, enc_password
 import shutil
@@ -126,79 +126,45 @@ def convert_to_cloud_format(input_file, output_file):
         return False
 
 def register_frpc_proxy():
-    """调用register_frpc_proxy函数重新注册代理（设置REGISTER_FORCE环境变量）"""
+    """向云端重新注册代理"""
     try:
-        if not COMMON_SH.exists():
-            syslog.syslog(syslog.LOG_ERR, f"common.sh不存在: {COMMON_SH}")
-            return False
-        
         # 1. 转换配置格式
         input_file = config.SERVICE_DIR / "register_proxy.json"
-        cloud_file = config.SERVICE_DIR / "register_proxy_cloud.json"
         
-        # 如果不存在，尝试从模板复制 (web_routes 里也做了类似事情，这里双重保险)
+        # 如果不存在，尝试从模板复制
         if not input_file.exists():
              template_file = SCRIPT_DIR / "conf" / "register_proxy.json"
              if template_file.exists():
                  import shutil
                  shutil.copy(template_file, input_file)
         
-        if not convert_to_cloud_format(input_file, cloud_file):
-             syslog.syslog(syslog.LOG_ERR, "Failed to convert register_proxy.json to cloud format")
-             return False
+        if not input_file.exists():
+            syslog.syslog(syslog.LOG_ERR, "register_proxy.json 不存在且无法通过模板创建")
+            return False
 
-        # 1.5 从本地 ieg_auth 获取认证信息
-        env = os.environ.copy()
+        with open(input_file, 'r') as f:
+            proxy_list = json.load(f)
+
+        # 2. 调用 Python 注册逻辑
+        from cloud_service import register_proxy_to_cloud
+        config_content, _ = register_proxy_to_cloud(proxy_list, is_tmp=False, force=True)
         
-        from ieg_auth import get_current_user_info
-        auth_info = get_current_user_info()
-        
-        if isinstance(auth_info, dict):
-             if auth_info.get('companyid'):
-                 env['REMOTE_COMPANYID'] = str(auth_info['companyid'])
-             if auth_info.get('userid'):
-                 env['REMOTE_USERID'] = str(auth_info['userid'])
-             if auth_info.get('email'):
-                 env['REMOTE_ACCOUNT'] = str(auth_info['email'])
+        if config_content:
+            # 3. 将生成的配置文件保存到 SERVICE_DIR
+            target_config = config.SERVICE_DIR / "frpc.toml"
+            with open(target_config, 'w') as f:
+                f.write(config_content)
+            
+            syslog.syslog(syslog.LOG_INFO, f"代理注册成功，配置文件已更新: {target_config}")
+            return True
         else:
-             syslog.syslog(syslog.LOG_WARNING, f"Failed to get auth info from local iEG service: {auth_info}")
+            syslog.syslog(syslog.LOG_ERR, "代理注册失败：未能从云端获取配置内容")
+            return False
 
-        # 2. 设置环境变量并调用register_frpc_proxy函数
-        env['REGISTER_FORCE'] = 'true'
-        env['PROXY_JSON_FILE'] = str(cloud_file) # 传递转换后的文件
-        env['SERVICE_DIR'] = str(config.SERVICE_DIR)
-        env['DATA_DIR'] = str(config.DATA_DIR)
-        
-        # 执行bash命令调用register_frpc_proxy函数
-        cmd = f"""
-        cd {SCRIPT_DIR} && \
-        source {COMMON_SH} && \
-        register_frpc_proxy
-        """
-        
-        result = subprocess.run(
-            ['bash', '-c', cmd],
-            env=env,
-            cwd=str(SCRIPT_DIR),
-            check=True,
-            capture_output=True,
-            text=True
-        )
-        
-        # 验证配置文件是否成功更新
-        target_config = config.SERVICE_DIR / "frpc.toml"
-        if target_config.exists():
-            import time as time_module
-            file_mtime = target_config.stat().st_mtime
-            current_time = time_module.time()
-            if current_time - file_mtime < 10:
-                syslog.syslog(syslog.LOG_INFO, f"代理注册成功，配置文件已更新: {result.stdout}")
-                return True
-        syslog.syslog(syslog.LOG_INFO, f"代理注册完成: {result.stdout}")
-        return True
     except Exception as e:
         syslog.syslog(syslog.LOG_ERR, f"代理注册异常: {str(e)}")
         return False
+
 
 # 临时 FRPC 管理逻辑 (保持原样移植)
 def check_tmp_frpc_running():
@@ -254,10 +220,10 @@ def cleanup_tmp_frpc_files():
     except: return False
 
 def register_tmp_proxy():
+    """临时代理注册"""
     try:
-        # 1. 转换配置格式
+        # 1. 读取配置
         input_file = config.SERVICE_DIR / "register_proxy_tmp.json"
-        cloud_file = config.SERVICE_DIR / "register_proxy_tmp_cloud.json"
         
         # 如果不存在，尝试从模板复制
         if not input_file.exists():
@@ -266,46 +232,30 @@ def register_tmp_proxy():
                  import shutil
                  shutil.copy(template_file, input_file)
         
-        if not convert_to_cloud_format(input_file, cloud_file):
-             return False, "Failed to convert tmp config format"
+        if not input_file.exists():
+            return False, "register_proxy_tmp.json 不存在"
 
-        # 1.5 从本地 ieg_auth 获取认证信息
-        env = os.environ.copy()
-        
-        from ieg_auth import get_current_user_info
-        auth_info = get_current_user_info()
-        
-        if isinstance(auth_info, dict):
-             if auth_info.get('companyid'):
-                 env['REMOTE_COMPANYID'] = str(auth_info['companyid'])
-             if auth_info.get('userid'):
-                 env['REMOTE_USERID'] = str(auth_info['userid'])
-             if auth_info.get('email'):
-                 env['REMOTE_ACCOUNT'] = str(auth_info['email'])
-        else:
-             syslog.syslog(syslog.LOG_WARNING, f"Failed to get auth info from local iEG service: {auth_info}")
+        with open(input_file, 'r') as f:
+            proxy_list = json.load(f)
 
-        # 2. 调用 common.sh
-        env['PROXY_JSON_FILE'] = str(cloud_file)
-        env['SERVICE_DIR'] = str(config.SERVICE_DIR)
-        env['DATA_DIR'] = str(config.DATA_DIR)
+        # 2. 调用 Python 注册逻辑
+        from cloud_service import register_proxy_to_cloud
+        config_content, visitor_code = register_proxy_to_cloud(proxy_list, is_tmp=True)
         
-        cmd = f'cd {SCRIPT_DIR} && source {COMMON_SH} && register_tmp_frpc_proxy'
-        result = subprocess.run(['bash', '-c', cmd], capture_output=True, text=True, env=env)
-        
-        if result.returncode == 0:
-            visitor_code = ""
-            for line in result.stdout.split('\n'):
-                if 'Visitor Code:' in line:
-                    code = line.split('Visitor Code:')[1].strip()
-                    if code: 
-                        visitor_code = code
-                        break
-            if not visitor_code and VISITOR_CODE_FILE.exists():
-                with open(VISITOR_CODE_FILE, 'r') as f: visitor_code = f.read().strip()
+        if config_content:
+            # 3. 保存配置文件
+            target_config = config.SERVICE_DIR / "frpc_tmp.toml"
+            with open(target_config, 'w') as f:
+                f.write(config_content)
+            
+            # 4. 保存访客码
             if visitor_code:
-                with open(VISITOR_CODE_FILE, 'w') as f: f.write(visitor_code)
+                with open(VISITOR_CODE_FILE, 'w') as f:
+                    f.write(visitor_code)
                 return True, visitor_code
             return True, ""
-        return False, result.stderr or result.stdout
-    except Exception as e: return False, str(e)
+        else:
+            return False, visitor_code or "获取临时配置失败"
+
+    except Exception as e:
+        return False, str(e)

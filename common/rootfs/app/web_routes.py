@@ -4,7 +4,7 @@ import os
 from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for
 
 from datetime import datetime
-from config import REMOTE_ASSISTANCE_FILE, VISITOR_CODE_FILE, FRPC_SERVER_URL, SCRIPT_DIR
+from config import REMOTE_ASSISTANCE_FILE, VISITOR_CODE_FILE, SCRIPT_DIR
 import config
 from utils import generate_bind_port, get_link_value, compare_json_content
 from frpc_service import (
