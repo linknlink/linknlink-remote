@@ -367,3 +367,60 @@ def restart_service():
         return jsonify({'success': True, 'message': '服务重启成功'})
     else:
         return jsonify({'success': False, 'message': '服务重启失败'})
+
+@web_bp.route('/api/config/reset/main', methods=['POST'])
+@require_login
+def reset_config_main():
+    """重置主配置为默认"""
+    try:
+        template_file = SCRIPT_DIR / "conf" / "register_proxy.json"
+        target_file = config.SERVICE_DIR / "register_proxy.json"
+        
+        if template_file.exists():
+            # 读取模板
+            with open(template_file, 'r') as f:
+                content = json.load(f)
+            
+            # 写入目标
+            with open(target_file, 'w') as f:
+                json.dump(content, f, indent=4)
+                
+            # 重启服务使得配置生效
+            if register_frpc_proxy():
+                restart_frpc()
+                return jsonify({'success': True, 'message': '主配置已重置并生效'})
+            else:
+                return jsonify({'success': False, 'message': '主配置重置成功但同步失败'})
+        else:
+            # 如果没有模板，创建一个空的列表
+            with open(target_file, 'w') as f:
+                json.dump([], f, indent=4)
+            restart_frpc()
+            return jsonify({'success': True, 'message': '主配置已清空'})
+
+    except Exception as e:
+        syslog.syslog(syslog.LOG_ERR, f"Reset main config failed: {str(e)}")
+        return jsonify({'success': False, 'message': f'重置主配置失败: {str(e)}'})
+
+@web_bp.route('/api/config/reset/tmp', methods=['POST'])
+@require_login
+def reset_config_tmp():
+    """重置临时配置为默认"""
+    try:
+        template_file = SCRIPT_DIR / "conf" / "register_proxy_tmp.json"
+        target_file = config.SERVICE_DIR / "register_proxy_tmp.json"
+        
+        if template_file.exists():
+            with open(template_file, 'r') as f:
+                content = json.load(f)
+            with open(target_file, 'w') as f:
+                json.dump(content, f, indent=4)
+        else:
+            with open(target_file, 'w') as f:
+                json.dump([], f, indent=4)
+                
+        return jsonify({'success': True, 'message': '临时配置已重置'})
+
+    except Exception as e:
+        syslog.syslog(syslog.LOG_ERR, f"Reset tmp config failed: {str(e)}")
+        return jsonify({'success': False, 'message': f'重置临时配置失败: {str(e)}'})

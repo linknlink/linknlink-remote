@@ -806,7 +806,7 @@
                 return;
             }
             try {
-                const response = await fetch('/frpc/api/config/reset/main', {
+                const response = await fetch('/api/config/reset/main', {
                     method: 'POST'
                 });
                 const data = await response.json();
@@ -827,7 +827,7 @@
                 return;
             }
             try {
-                const response = await fetch('/frpc/api/config/reset/tmp', {
+                const response = await fetch('/api/config/reset/tmp', {
                     method: 'POST'
                 });
                 const data = await response.json();
@@ -866,7 +866,7 @@
                     remoteAssistance: remoteAssistance
                 };
 
-                const response = await fetch('/frpc/api/config/save', {
+                const response = await fetch('/api/save_config', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
