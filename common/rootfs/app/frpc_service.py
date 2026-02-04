@@ -3,6 +3,8 @@ import logging
 import os
 import json
 import time
+import threading
+import sys
 from pathlib import Path
 
 from config import SCRIPT_DIR, VISITOR_CODE_FILE, DATA_DIR
@@ -13,6 +15,28 @@ import shutil
 import cloud_service
 
 logger = logging.getLogger(__name__)
+
+def stream_logs(pipe, log_file_path):
+    """
+    后台线程：实时读取子进程管道输出，同时写入文件和打印到标准输出
+    """
+    try:
+        with open(log_file_path, 'a') as f:
+            # 持续读取直到管道关闭
+            for line in iter(pipe.readline, ''):
+                if not line:
+                    break
+                # 输出到 stdout
+                sys.stdout.write(line)
+                sys.stdout.flush()
+                # 写入文件
+                f.write(line)
+                f.flush()
+    except Exception as e:
+        logger.error(f"Stream logs error: {e}")
+    finally:
+        pipe.close()
+
 
 # 全局 FRPC 进程句柄
 FRPC_PROCESS = None
@@ -55,13 +79,24 @@ def start_frpc():
             
         # 启动 frpc 进程
         log_file_path = config.SERVICE_DIR / "frpc.log"
-        log_file = open(log_file_path, 'a')
+        # 使用管道捕获输出，而不是直接重定向到文件
         FRPC_PROCESS = subprocess.Popen(
             [frpc_binary, '-c', str(config_file)],
-            stdout=log_file,
+            stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
-            start_new_session=True
+            start_new_session=True,
+            text=True,     # 以文本模式读取
+            bufsize=1      # 行缓冲
         )
+        
+        # 启动后台线程处理日志流
+        log_thread = threading.Thread(
+            target=stream_logs, 
+            args=(FRPC_PROCESS.stdout, log_file_path),
+            daemon=True
+        )
+        log_thread.start()
+
         logger.info(f"frpc 启动成功，PID: {FRPC_PROCESS.pid}")
         return True
     except Exception as e:
@@ -198,8 +233,25 @@ def start_tmp_frpc():
             if not frpc_binary or not os.path.exists(frpc_binary):
                  return False
 
-        log_file = open(config.SERVICE_DIR / "frpc_tmp.log", 'a')
-        process = subprocess.Popen([str(frpc_binary), '-c', str(config_file)], stdout=log_file, stderr=subprocess.STDOUT, start_new_session=True)
+        # log_file = open(config.SERVICE_DIR / "frpc_tmp.log", 'a')
+        log_file_path = config.SERVICE_DIR / "frpc_tmp.log"
+        
+        process = subprocess.Popen(
+            [str(frpc_binary), '-c', str(config_file)], 
+            stdout=subprocess.PIPE, 
+            stderr=subprocess.STDOUT, 
+            start_new_session=True,
+            text=True,
+            bufsize=1
+        )
+        
+        # 启动后台线程处理日志流
+        log_thread = threading.Thread(
+            target=stream_logs, 
+            args=(process.stdout, log_file_path),
+            daemon=True
+        )
+        log_thread.start()
         pid_file = config.SERVICE_DIR / "frpc_tmp.pid"
         with open(pid_file, 'w') as f: f.write(str(process.pid))
         return True

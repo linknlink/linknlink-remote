@@ -3,6 +3,7 @@ import sys
 import threading
 import os
 from flask import Flask
+from werkzeug.serving import WSGIRequestHandler
 
 from config import (
     SERVICE_DIR, DATA_DIR, TEMPLATES_DIR, 
@@ -71,4 +72,23 @@ if __name__ == '__main__':
 
     # 启动 Flask 应用
     logger.info("启动 Web 服务端口 8888...")
-    app.run(host='0.0.0.0', port=8888, debug=False)
+    
+    class CustomRequestHandler(WSGIRequestHandler):
+        def log(self, type, message, *args):
+            # 覆盖 log 方法，移除默认的日期时间格式
+            # 原格式: [21/Jun/2022 10:29:12] "GET / HTTP/1.1" 200 -
+            # 新格式: "GET / HTTP/1.1" 200 -
+            # 因为外层 logger 已经包含了时间
+            try:
+                msg = f"{self.address_string()} - - {message % args}\n"
+            except:
+                msg = f"{self.address_string()} - - {message}\n"
+            
+            # 使用 sys.stderr 直接输出，保持与 Werkzeug 默认行为一致，但去掉了时间戳
+            # 或者使用 logging 模块
+            # 这里选择直接输出到 stderr 以兼容默认行为，但可以改用 logger.info(msg.strip())
+            # 为了简单且有效去除时间戳，我们重新构造并输出
+            sys.stderr.write(msg)
+            sys.stderr.flush()
+
+    app.run(host='0.0.0.0', port=8888, debug=False, request_handler=CustomRequestHandler)
