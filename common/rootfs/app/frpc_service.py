@@ -1,5 +1,5 @@
 import subprocess
-import syslog
+import logging
 import os
 import json
 import time
@@ -11,6 +11,8 @@ from utils import prepare_env, compare_json_content, generate_bind_port, get_lin
 import shutil
 # 延迟导入，避免循环依赖 (如果 cloud_service 导入 frpc_service)
 import cloud_service
+
+logger = logging.getLogger(__name__)
 
 # 全局 FRPC 进程句柄
 FRPC_PROCESS = None
@@ -28,7 +30,7 @@ def start_frpc():
     try:
         config_file = config.SERVICE_DIR / "frpc.toml"
         if not config_file.exists():
-            syslog.syslog(syslog.LOG_INFO, "frpc.toml 不存在，跳过启动 frpc")
+            logger.info("frpc.toml 不存在，跳过启动 frpc")
             return False
         
         # 优先查找本地路径
@@ -40,7 +42,7 @@ def start_frpc():
             # 尝试备选路径
             frpc_binary = shutil.which("frpc") or "/usr/bin/frpc"
             if not frpc_binary or not os.path.exists(frpc_binary):
-                syslog.syslog(syslog.LOG_ERR, "frpc 二进制文件不存在")
+                logger.error("frpc 二进制文件不存在")
                 return False
             
         # 启动 frpc 进程
@@ -52,10 +54,10 @@ def start_frpc():
             stderr=subprocess.STDOUT,
             start_new_session=True
         )
-        syslog.syslog(syslog.LOG_INFO, f"frpc 启动成功，PID: {FRPC_PROCESS.pid}")
+        logger.info(f"frpc 启动成功，PID: {FRPC_PROCESS.pid}")
         return True
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"启动 frpc 异常: {str(e)}")
+        logger.error(f"启动 frpc 异常: {str(e)}")
         return False
 
 def stop_frpc():
@@ -65,10 +67,10 @@ def stop_frpc():
         try:
             FRPC_PROCESS.terminate()
             FRPC_PROCESS.wait(timeout=5)
-            syslog.syslog(syslog.LOG_INFO, "frpc 停止成功")
+            logger.info("frpc 停止成功")
         except:
             FRPC_PROCESS.kill()
-            syslog.syslog(syslog.LOG_WARNING, "frpc 强制停止")
+            logger.warning("frpc 强制停止")
         FRPC_PROCESS = None
         return True
     return True
@@ -81,7 +83,7 @@ def restart_frpc():
         start_frpc()
         return True
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"重启frpc服务异常: {str(e)}")
+        logger.error(f"重启frpc服务异常: {str(e)}")
         return False
 
 # 注册代理函数
@@ -122,7 +124,7 @@ def convert_to_cloud_format(input_file, output_file):
             
         return True
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Config conversion failed: {str(e)}")
+        logger.error(f"Config conversion failed: {str(e)}")
         return False
 
 def register_frpc_proxy():
@@ -139,7 +141,7 @@ def register_frpc_proxy():
                  shutil.copy(template_file, input_file)
         
         if not input_file.exists():
-            syslog.syslog(syslog.LOG_ERR, "register_proxy.json 不存在且无法通过模板创建")
+            logger.error("register_proxy.json 不存在且无法通过模板创建")
             return False
 
         with open(input_file, 'r') as f:
@@ -155,14 +157,14 @@ def register_frpc_proxy():
             with open(target_config, 'w') as f:
                 f.write(config_content)
             
-            syslog.syslog(syslog.LOG_INFO, f"代理注册成功，配置文件已更新: {target_config}")
+            logger.info(f"代理注册成功，配置文件已更新: {target_config}")
             return True
         else:
-            syslog.syslog(syslog.LOG_ERR, "代理注册失败：未能从云端获取配置内容")
+            logger.error("代理注册失败：未能从云端获取配置内容")
             return False
 
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"代理注册异常: {str(e)}")
+        logger.error(f"代理注册异常: {str(e)}")
         return False
 
 
