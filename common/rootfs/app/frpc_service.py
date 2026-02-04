@@ -36,10 +36,9 @@ def start_frpc():
         # 二进制查找策略
         search_paths = [
             config.SERVICE_DIR / "bin" / "frpc",                        # 1. 配置目录下的 bin
-            config.BASE_DIR / "etc" / "bin" / "frpc",                  # 2. 基础目录下的默认位置
-            Path("/usr/local/bin/frpc"),                                # 3. 标准系统路径
-            Path("/usr/bin/frpc"),                                      # 4. 备选系统路径
-            Path(shutil.which("frpc") or "/usr/bin/frpc")               # 5. PATH 环境变量
+            Path("/usr/local/bin/frpc"),                                # 2. 标准系统路径
+            Path("/usr/bin/frpc"),                                      # 3. 备选系统路径
+            Path(shutil.which("frpc") or "/usr/bin/frpc")               # 4. PATH 环境变量
         ]
         
         frpc_binary = None
