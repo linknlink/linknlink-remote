@@ -6,12 +6,13 @@ from datetime import timedelta
 _script_file = Path(__file__).resolve()
 APP_DIR = _script_file.parent         # app/
 
-# 运行时目录
-RUNTIME_DIR = APP_DIR.parent / "runtime"
+# 基础运行目录
+# 默认指向应用目录同级的 runtime 文件夹，支持通过环境变量统一覆盖
+BASE_DIR = Path(os.getenv('BASE_DIR', APP_DIR.parent / "runtime"))
 
-# 服务配置目录（支持环境变量覆盖）
-SERVICE_DIR = Path(os.getenv('SERVICE_DIR', RUNTIME_DIR / "etc"))
-DATA_DIR = RUNTIME_DIR / "data"
+# 服务与数据子目录（基于 BASE_DIR 自动生成）
+SERVICE_DIR = BASE_DIR / "etc"
+DATA_DIR = BASE_DIR / "data"
 
 REMOTE_ASSISTANCE_FILE = SERVICE_DIR / "remote_assistance"
 VISITOR_CODE_FILE = SERVICE_DIR / "visitor_code"
