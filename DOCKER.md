@@ -15,14 +15,12 @@
 ```bash
 # 可选配置
 LOG_LEVEL=info
-CONFIG_FILE=/config/frpc.toml
-DATA_DIR=/data
 ```
 
 ### 2. 创建必要的目录
 
 ```bash
-mkdir -p data
+mkdir -p runtime
 ```
 
 注意：`config` 目录不需要创建，容器会在内部创建临时配置目录。
@@ -46,8 +44,6 @@ docker-compose logs -f
 | 变量名 | 必需 | 默认值 | 说明 |
 |--------|------|--------|------|
 | `LOG_LEVEL` | 否 | `info` | 日志级别：trace, debug, info, notice, warning, error, fatal |
-| `CONFIG_FILE` | 否 | `/config/frpc.toml` | FRPC 配置文件路径 |
-| `DATA_DIR` | 否 | `/data` | 数据目录路径（用于持久化设备ID等） |
 
 ### 网络模式
 
@@ -61,9 +57,7 @@ docker-compose logs -f
 
 以下目录会被挂载到宿主机，确保数据持久化：
 
-- `./data` → `/data`：存储设备ID的持久化数据（确保容器重启后设备ID不变）
-
-注意：`/config` 目录在容器内部用于存放临时配置文件（`frpc.toml`），每次启动都会重新从服务器获取，因此不需要持久化。
+- `./runtime` → `/runtime`：统一存储服务配置、运行时数据和设备 ID 缓存。
 
 ## 构建镜像
 
@@ -84,7 +78,7 @@ docker-compose down
 设备ID会保存在数据目录中：
 
 ```bash
-cat data/device_id.txt
+cat runtime/data/device_id.txt
 ```
 
 或者在日志中查看：
@@ -125,8 +119,7 @@ docker-compose restart
 
 ## 注意事项
 
-1. **网络模式**：使用 host 模式时，容器与宿主机共享网络，请确保端口不冲突
-2. **数据持久化**：设备ID会保存在 `./data/device_id.txt`，删除此文件会导致生成新的设备ID
+2. **数据持久化**：所有的持久化数据都存放在 `./runtime` 目录中，包括设备 ID 缓存
 3. **安全性**：`.env` 文件包含敏感信息，请勿提交到版本控制系统
 
 ## 与 Home Assistant Add-on 版本的区别
