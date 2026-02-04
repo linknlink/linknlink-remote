@@ -1,6 +1,7 @@
 import syslog
 import json
 import os
+import re
 from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for
 
 from datetime import datetime
@@ -177,13 +178,73 @@ def get_visitor_code():
             pass
     return jsonify({'success': True, 'data': code})
 
+def _ensure_config_consistency():
+    """
+    检查配置一致性，并在必要时触发自动注册
+    返回: True (配置正常或修复成功), False (修复失败)
+    """
+    need_register = False
+    config_file = config.SERVICE_DIR / "frpc.toml"
+    
+    # 1. 检查文件是否存在
+    if not config_file.exists():
+        syslog.syslog(syslog.LOG_INFO, "frpc.toml not found, triggering registration...")
+        need_register = True
+    else:
+        # 2. 检查配置一致性 (对比 JSON 中的 bindPort 和 TOML 中的 remotePort)
+        try:
+            # 读取 JSON 配置
+            json_config_file = config.SERVICE_DIR / "register_proxy.json"
+            if not json_config_file.exists():
+                # JSON 都不存在，可能还是初始状态，尝试注册看看能否恢复模板
+                need_register = True
+            else:
+                with open(json_config_file, 'r') as f:
+                    proxy_list = json.load(f)
+                    
+                # 提取 JSON 中所有的 bindPort (预期值)
+                expected_ports = set()
+                for item in proxy_list:
+                    if str(item.get('bindPort')):
+                        expected_ports.add(str(item.get('bindPort')))
+                        
+                if expected_ports:
+                    # 读取 TOML 配置
+                    with open(config_file, 'r') as f:
+                        toml_content = f.read()
+                        
+                    # 提取 TOML 中所有的 remotePort (实际值)
+                    # 匹配 pattern: remotePort = 12345
+                    actual_ports = set(re.findall(r'remotePort\s*=\s*(\d+)', toml_content))
+                    
+                    # 检查预期端口是否都在实际配置中
+                    # 注意：只检查是否存在，不一定一一对应，因为TOML可能包含其他默认配置，但JSON中的一定要有
+                    if not expected_ports.issubset(actual_ports):
+                        syslog.syslog(syslog.LOG_WARNING, f"Config mismatch detected. Expected: {expected_ports}, Actual: {actual_ports}. Triggering registration...")
+                        need_register = True
+        except Exception as e:
+            syslog.syslog(syslog.LOG_ERR, f"Config consistency check failed: {str(e)}")
+            # 出错保守起见不强制注册，以免陷入死循环，或者可以根据策略决定
+            pass
+
+    # 3. 如果需要，执行注册
+    if need_register:
+        syslog.syslog(syslog.LOG_INFO, "Executing auto-registration due to missing or inconsistent config...")
+        if not register_frpc_proxy():
+            return False
+            
+    return True
+
 @web_bp.route('/api/service/start', methods=['POST'])
 @require_login
 def service_start():
+    if not _ensure_config_consistency():
+        return jsonify({'success': False, 'message': '服务启动失败：配置自动修正失败，请检查日志'})
+        
     if start_frpc():
-        return jsonify({'success': True, 'message': '服务启动成功'})
+         return jsonify({'success': True, 'message': '服务启动成功'})
     else:
-        return jsonify({'success': False, 'message': '服务启动失败'})
+         return jsonify({'success': False, 'message': '服务启动失败'})
 
 @web_bp.route('/api/service/stop', methods=['POST'])
 @require_login
@@ -196,6 +257,9 @@ def service_stop():
 @web_bp.route('/api/service/restart', methods=['POST'])
 @require_login
 def service_restart():
+    if not _ensure_config_consistency():
+        return jsonify({'success': False, 'message': '服务重启失败：配置自动修正失败，请检查日志'})
+        
     if restart_frpc():
         return jsonify({'success': True, 'message': '服务重启成功'})
     else:
