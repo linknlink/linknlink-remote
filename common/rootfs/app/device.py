@@ -1,9 +1,11 @@
 import subprocess
 import uuid
-import syslog
+import logging
 import requests
 from pathlib import Path
 from config import DEVICE_ID_FILE, HADDONS_API_BASE_URL
+
+logger = logging.getLogger(__name__)
 
 def get_primary_interface_mac():
     """
@@ -14,15 +16,17 @@ def get_primary_interface_mac():
     # 优先尝试从 haddons API 获取
     try:
         url = f"{HADDONS_API_BASE_URL.rstrip('/')}/addons/system/mac"
+        logger.info(f"Outbound Request: GET {url}")
         response = requests.get(url, timeout=5)
+        logger.info(f"Outbound Response: GET {url}, Status: {response.status_code}")
         if response.status_code == 200:
             data = response.json()
             mac = data.get("mac", "")
             if mac and len(mac) == 17:
-                syslog.syslog(syslog.LOG_INFO, f"Successfully retrieved MAC from haddons API: {mac}")
+                logger.info(f"Successfully retrieved MAC from haddons API: {mac}")
                 return mac
     except Exception as e:
-        syslog.syslog(syslog.LOG_WARNING, f"Failed to get MAC from haddons API: {e}")
+        logger.warning(f"Failed to get MAC from haddons API: {e}")
 
     # 回退到原有逻辑
     try:
@@ -98,7 +102,7 @@ def get_primary_interface_mac():
         
         return ""
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"获取主网卡MAC地址失败: {str(e)}")
+        logger.error(f"获取主网卡MAC地址失败: {str(e)}")
         return ""
 
 def get_device_id():
@@ -111,10 +115,10 @@ def get_device_id():
         try:
             saved_id = DEVICE_ID_FILE.read_text().strip().lower()
             if saved_id:
-                syslog.syslog(syslog.LOG_INFO, f"Using stored device ID: {saved_id}")
+                logger.info(f"Using stored device ID: {saved_id}")
                 return saved_id
         except Exception as e:
-            syslog.syslog(syslog.LOG_WARNING, f"Read stored device ID failed: {e}")
+            logger.warning(f"Read stored device ID failed: {e}")
 
     # 2. 尝试获取MAC地址
     mac = get_primary_interface_mac().replace(':', '').upper()
@@ -127,19 +131,19 @@ def get_device_id():
             device_id = "0" * padding + mac
         else:
             device_id = mac
-        syslog.syslog(syslog.LOG_INFO, f"Using MAC address as device ID: {device_id}")
+        logger.info(f"Using MAC address as device ID: {device_id}")
     else:
         # 3. 使用UUID
         device_id = uuid.uuid4().hex.upper()
-        syslog.syslog(syslog.LOG_INFO, f"Using UUID as device ID: {device_id}")
+        logger.info(f"Using UUID as device ID: {device_id}")
     
     device_id = device_id.lower()
     
     # 持久化保存
     try:
         DEVICE_ID_FILE.write_text(device_id)
-        syslog.syslog(syslog.LOG_INFO, f"Persisted generated device ID: {device_id}")
+        logger.info(f"Persisted generated device ID: {device_id}")
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Save device ID failed: {e}")
+        logger.error(f"Save device ID failed: {e}")
         
     return device_id

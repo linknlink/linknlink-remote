@@ -240,7 +240,7 @@ def _ensure_config_consistency():
     
     # 1. 检查文件是否存在
     if not config_file.exists():
-        syslog.syslog(syslog.LOG_INFO, "frpc.toml not found, triggering registration...")
+        logger.info("frpc.toml not found, triggering registration...")
         need_register = True
     else:
         # 2. 检查配置一致性 (对比 JSON 中的 bindPort 和 TOML 中的 remotePort)
@@ -272,16 +272,16 @@ def _ensure_config_consistency():
                     # 检查预期端口是否都在实际配置中
                     # 注意：只检查是否存在，不一定一一对应，因为TOML可能包含其他默认配置，但JSON中的一定要有
                     if not expected_ports.issubset(actual_ports):
-                        syslog.syslog(syslog.LOG_WARNING, f"Config mismatch detected. Expected: {expected_ports}, Actual: {actual_ports}. Triggering registration...")
+                        logger.warning(f"Config mismatch detected. Expected: {expected_ports}, Actual: {actual_ports}. Triggering registration...")
                         need_register = True
         except Exception as e:
-            syslog.syslog(syslog.LOG_ERR, f"Config consistency check failed: {str(e)}")
+            logger.error(f"Config consistency check failed: {str(e)}")
             # 出错保守起见不强制注册，以免陷入死循环，或者可以根据策略决定
             pass
 
     # 3. 如果需要，执行注册
     if need_register:
-        syslog.syslog(syslog.LOG_INFO, "Executing auto-registration due to missing or inconsistent config...")
+        logger.info("Executing auto-registration due to missing or inconsistent config...")
         if not register_frpc_proxy():
             return False
             
@@ -353,10 +353,10 @@ def save_config():
             restart_frpc()
             msg_suffix = "主服务配置已更新。"
         else:
-             msg_suffix = "主服务配置更新失败（云端同步失败）。"
+             message = "主服务配置更新失败（云端同步失败）。"
              
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Save main config failed: {str(e)}")
+        logger.error(f"Save main config failed: {str(e)}")
         return jsonify({'success': False, 'message': f'保存主配置失败: {str(e)}'})
 
     # 2. 保存临时配置到 register_proxy_tmp.json
@@ -375,7 +375,7 @@ def save_config():
         with open(config.SERVICE_DIR / "register_proxy_tmp.json", 'w') as f:
             json.dump(cleaned_tmp_config, f, indent=4)
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Save tmp config failed: {str(e)}")
+        logger.error(f"Save tmp config failed: {str(e)}")
 
     # 3. 保存远程协助状态
     old_remote_assistance = False
@@ -451,7 +451,7 @@ def reset_config_main():
             return jsonify({'success': True, 'message': '主配置已清空'})
 
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Reset main config failed: {str(e)}")
+        logger.error(f"Reset main config failed: {str(e)}")
         return jsonify({'success': False, 'message': f'重置主配置失败: {str(e)}'})
 
 @web_bp.route('/api/config/reset/tmp', methods=['POST'])
@@ -474,5 +474,5 @@ def reset_config_tmp():
         return jsonify({'success': True, 'message': '临时配置已重置'})
 
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Reset tmp config failed: {str(e)}")
+        logger.error(f"Reset tmp config failed: {str(e)}")
         return jsonify({'success': False, 'message': f'重置临时配置失败: {str(e)}'})

@@ -1,10 +1,12 @@
-import syslog
+import logging
 import requests
 import time
 import os
 from config import CLOUD_API_BASE_URL, HEARTBEAT_API_URL, PROXY_API_URL, TMP_PROXY_API_URL
 from utils import enc_password
 from device import get_device_id
+
+logger = logging.getLogger(__name__)
 
 
 # 全局变量存储云端认证信息
@@ -28,7 +30,9 @@ def cloud_login(email, password):
             'password': encrypted_password
         }
         
+        logger.info(f"Outbound Request: POST {api_url}, Payload: {{'email': '{email}', 'password': '***'}}")
         response = requests.post(api_url, json=payload, timeout=30)
+        logger.info(f"Outbound Response: POST {api_url}, Status: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
@@ -43,18 +47,18 @@ def cloud_login(email, password):
                     CLOUD_AUTH_INFO['company_id'] = company_id
                     CLOUD_AUTH_INFO['user_id'] = user_id
                     CLOUD_AUTH_INFO['account'] = email
-                    syslog.syslog(syslog.LOG_INFO, f"Cloud login successful. UserID: {user_id}")
+                    logger.info(f"Cloud login successful. UserID: {user_id}")
                     return True
                 else:
-                    syslog.syslog(syslog.LOG_ERR, "Cloud login response missing companyid or userid")
+                    logger.error("Cloud login response missing companyid or userid")
             else:
                 msg = data.get('msg') or data.get('message')
-                syslog.syslog(syslog.LOG_ERR, f"Cloud login failed: {msg} (status: {status})")
+                logger.error(f"Cloud login failed: {msg} (status: {status})")
         else:
-            syslog.syslog(syslog.LOG_ERR, f"Cloud login failed with HTTP {response.status_code}")
+            logger.error(f"Cloud login failed with HTTP {response.status_code}")
             
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Cloud login exception: {str(e)}")
+        logger.error(f"Cloud login exception: {str(e)}")
     
     return False
 def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
@@ -91,8 +95,9 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
         if force:
             headers["register-force"] = "true"
 
-        syslog.syslog(syslog.LOG_INFO, f"Registering {'tmp ' if is_tmp else ''}proxy to cloud: {url}")
+        logger.info(f"Outbound Request: POST {url}, Payload: {json.dumps(payload)}")
         response = requests.post(url, json=payload, headers=headers, timeout=30)
+        logger.info(f"Outbound Response: POST {url}, Status: {response.status_code}")
         
         if response.status_code == 200:
             # 检查是否是 JSON 错误响应
@@ -101,7 +106,7 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
                 status = data.get('status')
                 if status is not None and str(status) != "0":
                     msg = data.get('msg') or data.get('message')
-                    syslog.syslog(syslog.LOG_ERR, f"Cloud registration failed (API logic): {msg}")
+                    logger.error(f"Cloud registration failed (API logic): {msg}")
                     return None, msg
             except ValueError:
                 # 不是 JSON，说明返回的是 toml 配置文件内容
@@ -115,11 +120,11 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
             
             return config_content, visitor_code
         else:
-            syslog.syslog(syslog.LOG_ERR, f"Cloud registration failed with HTTP {response.status_code}")
+            logger.error(f"Cloud registration failed with HTTP {response.status_code}")
             return None, f"HTTP {response.status_code}"
             
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Cloud registration exception: {str(e)}")
+        logger.error(f"Cloud registration exception: {str(e)}")
         return None, str(e)
 
 def send_heartbeat():
@@ -143,9 +148,10 @@ def send_heartbeat():
         headers['userid'] = str(CLOUD_AUTH_INFO['user_id'])
         
     try:
+        # 心跳请求非常频繁，我们仅在失败时记录详细信息，成功时仅记录一次简单汇总
         response = requests.post(HEARTBEAT_API_URL, json=payload, headers=headers, timeout=10)
         if response.status_code != 200:
-             syslog.syslog(syslog.LOG_WARNING, f"Heartbeat failed: HTTP {response.status_code}")
+             logger.warning(f"Outbound Heartbeat Response failed: POST {HEARTBEAT_API_URL}, Status: {response.status_code}")
              return False
         return True
     except Exception as e:
@@ -154,7 +160,7 @@ def send_heartbeat():
 
 def heartbeat_loop():
     """后台心跳线程"""
-    syslog.syslog(syslog.LOG_INFO, "Starting heartbeat loop...")
+    logger.info("Starting heartbeat loop...")
     
     # 获取 Device ID
     CLOUD_AUTH_INFO['device_id'] = get_device_id()
@@ -171,10 +177,10 @@ def heartbeat_loop():
                      CLOUD_AUTH_INFO['company_id'] = user_info.get('companyid')
                      CLOUD_AUTH_INFO['user_id'] = user_info.get('userid')
                      CLOUD_AUTH_INFO['account'] = user_info.get('email')
-                     syslog.syslog(syslog.LOG_INFO, f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}")
+                     logger.info(f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}")
                 else:
                     # 获取失败，等待一段时间重试
-                    # syslog.syslog(syslog.LOG_WARNING, "Failed to get auth info from local iEG service, retrying...")
+                    # logger.warning("Failed to get auth info from local iEG service, retrying...")
                     time.sleep(60)
                     continue
             

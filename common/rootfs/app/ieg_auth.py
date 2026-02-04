@@ -1,6 +1,6 @@
 import requests
 import json
-import syslog
+import logging
 import hashlib
 import base64
 import time
@@ -11,6 +11,8 @@ from cryptography.hazmat.primitives import padding
 from cryptography.hazmat.backends import default_backend
 
 from config import HADDONS_API_BASE_URL
+
+logger = logging.getLogger(__name__)
 
 # ============= Crypto Constants =============
 IV = b"0123456789abcdef"
@@ -68,7 +70,7 @@ def aes_decrypt(ciphertext_b64, key, iv):
 
         return plaintext.decode('utf-8')
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"AES Decrypt error: {str(e)}")
+        logger.error(f"AES Decrypt error: {str(e)}")
         return None
 
 # ============= 认证相关函数 =============
@@ -81,8 +83,9 @@ def get_current_user_info():
     try:
         url = f"{HADDONS_API_BASE_URL}/addons/account/info"
         
-        # syslog.syslog(syslog.LOG_INFO, f"Fetching current user info via: {url}")
+        logger.info(f"Outbound Request: GET {url}")
         response = requests.get(url, timeout=5)
+        logger.info(f"Outbound Response: GET {url}, Status: {response.status_code}")
         
         if response.status_code == 200:
             data = response.json()
@@ -99,13 +102,13 @@ def get_current_user_info():
                 }
             else:
                 msg = data.get('msg', '获取用户信息失败')
-                syslog.syslog(syslog.LOG_WARNING, f"Get active user failed: {msg}")
+                logger.warning(f"Get active user failed: {msg}")
                 return msg
         else:
-            syslog.syslog(syslog.LOG_WARNING, f"GetUserInfo API returned HTTP {response.status_code}")
+            logger.warning(f"GetUserInfo API returned HTTP {response.status_code}")
             return f"HTTP {response.status_code}"
     except Exception as e:
-        syslog.syslog(syslog.LOG_ERR, f"Get current user info error: {str(e)}")
+        logger.error(f"Get current user info error: {str(e)}")
         return str(e)
     
     return None

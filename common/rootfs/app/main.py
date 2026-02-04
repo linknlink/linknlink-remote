@@ -1,4 +1,5 @@
-import syslog
+import logging
+import sys
 import threading
 import os
 from flask import Flask
@@ -11,6 +12,14 @@ from config import (
 from frpc_service import start_frpc
 from cloud_service import heartbeat_loop
 from web_routes import web_bp
+
+# 初始化日志
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stderr
+)
+logger = logging.getLogger(__name__)
 
 # 初始化 Flask 应用
 app = Flask(__name__, template_folder=str(TEMPLATES_DIR))
@@ -33,7 +42,7 @@ if __name__ == '__main__':
         config.SERVICE_DIR.mkdir(parents=True, exist_ok=True)
         config.DATA_DIR.mkdir(parents=True, exist_ok=True)
     except PermissionError:
-        syslog.syslog(syslog.LOG_WARNING, "默认路径权限不足，降级到当前目录 runtime 文件夹下运行...")
+        logger.warning("默认路径权限不足，降级到当前目录 runtime 文件夹下运行...")
         runtime_root = config.APP_DIR.parent / "runtime"
         config.SERVICE_DIR = runtime_root / "etc"
         config.DATA_DIR = runtime_root / "data"
@@ -53,22 +62,22 @@ if __name__ == '__main__':
     # 启动时检查并启动 frpc
     config_file = SERVICE_DIR / "frpc.toml"
     if not config_file.exists():
-        syslog.syslog(syslog.LOG_INFO, "frpc.toml 不存在，尝试自动注册...")
+        logger.info("frpc.toml 不存在，尝试自动注册...")
         from frpc_service import register_frpc_proxy
         if register_frpc_proxy():
-            syslog.syslog(syslog.LOG_INFO, "代理自动注册成功")
+            logger.info("代理自动注册成功")
         else:
-            syslog.syslog(syslog.LOG_ERR, "代理自动注册失败，等待手动配置")
+            logger.error("代理自动注册失败，等待手动配置")
 
     if config_file.exists():
         start_frpc()
     else:
-        syslog.syslog(syslog.LOG_INFO, "等待配置以启动 frpc...")
+        logger.info("等待配置以启动 frpc...")
 
     # 启动心跳线程
     heartbeat_thread = threading.Thread(target=heartbeat_loop, daemon=True)
     heartbeat_thread.start()
 
     # 启动 Flask 应用
-    syslog.syslog(syslog.LOG_INFO, "启动 Web 服务端口 8888...")
+    logger.info("启动 Web 服务端口 8888...")
     app.run(host='0.0.0.0', port=8888, debug=False)
