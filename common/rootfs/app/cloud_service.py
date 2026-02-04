@@ -2,6 +2,7 @@ import logging
 import requests
 import time
 import os
+import json
 from config import CLOUD_API_BASE_URL, HEARTBEAT_API_URL, PROXY_API_URL, TMP_PROXY_API_URL
 from utils import enc_password
 from device import get_device_id
@@ -74,7 +75,7 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
         # 构造请求数据
         payload = {
             "did": device_id,
-            "name": "iSG",
+            "name": "iSG-Linux",
             "type": 0,
             "account": CLOUD_AUTH_INFO.get('account', ''),
             "proxyList": proxy_list

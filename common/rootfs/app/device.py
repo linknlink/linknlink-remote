@@ -141,6 +141,8 @@ def get_device_id():
     
     # 持久化保存
     try:
+        # 确保目录存在
+        DEVICE_ID_FILE.parent.mkdir(parents=True, exist_ok=True)
         DEVICE_ID_FILE.write_text(device_id)
         logger.info(f"Persisted generated device ID: {device_id}")
     except Exception as e:
