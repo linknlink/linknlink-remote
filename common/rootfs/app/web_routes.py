@@ -1,7 +1,8 @@
-import syslog
 import json
 import os
 import re
+import logging
+import sys
 from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for
 
 from datetime import datetime
@@ -16,6 +17,14 @@ from frpc_service import (
 from device import get_device_id, get_primary_interface_mac
 from ieg_auth import require_login
 from cloud_service import CLOUD_AUTH_INFO
+
+# 配置日志输出到终端
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stderr
+)
+logger = logging.getLogger(__name__)
 
 # 创建 Blueprint
 web_bp = Blueprint('web', __name__)
@@ -36,7 +45,7 @@ def before_request_logging():
                 if len(body_str) > 500:
                     body_str = body_str[:500] + "..."
                 log_msg += f", Body: {body_str}"
-        syslog.syslog(syslog.LOG_INFO, log_msg)
+        logger.info(log_msg)
 
 @web_bp.after_request
 def after_request_logging(response):
@@ -59,7 +68,7 @@ def after_request_logging(response):
             except:
                 pass
                 
-        syslog.syslog(syslog.LOG_INFO, log_msg)
+        logger.info(log_msg)
     return response
 
 
