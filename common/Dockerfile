@@ -15,6 +15,7 @@ RUN \
     util-linux \
     python3 \
     py3-pip \
+    py3-cryptography \
     \
     # Install Python dependencies
     && pip3 install --break-system-packages flask requests
