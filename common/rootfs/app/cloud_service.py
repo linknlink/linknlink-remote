@@ -5,7 +5,7 @@ import os
 from config import CLOUD_API_BASE_URL, HEARTBEAT_API_URL, AUTH_EMAIL, AUTH_PASSWORD
 from utils import enc_password
 from device import get_device_id
-from frpc_service import check_frpc_running
+
 
 # 全局变量存储云端认证信息
 CLOUD_AUTH_INFO = {
@@ -64,6 +64,7 @@ def send_heartbeat():
         return False
         
     # 检查frpc是否运行
+    from frpc_service import check_frpc_running
     frpc_running = check_frpc_running()
     
     payload = {
@@ -105,12 +106,19 @@ def heartbeat_loop():
     # 循环
     while True:
         try:
-            # 如果没有登录成功，尝试登录
+            # 如果没有认证信息，尝试从本地 ieg_auth 获取
             if not CLOUD_AUTH_INFO['user_id']:
-                if cloud_login(email, password):
-                    pass
+                from ieg_auth import get_current_user_info
+                user_info = get_current_user_info()
+                
+                if isinstance(user_info, dict) and user_info.get('userid'):
+                     CLOUD_AUTH_INFO['company_id'] = user_info.get('companyid')
+                     CLOUD_AUTH_INFO['user_id'] = user_info.get('userid')
+                     CLOUD_AUTH_INFO['account'] = user_info.get('email')
+                     syslog.syslog(syslog.LOG_INFO, f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}")
                 else:
-                    # 登录失败，等待一段时间重试
+                    # 获取失败，等待一段时间重试
+                    # syslog.syslog(syslog.LOG_WARNING, "Failed to get auth info from local iEG service, retrying...")
                     time.sleep(60)
                     continue
             

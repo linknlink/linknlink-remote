@@ -4,7 +4,8 @@ import os
 from flask import Blueprint, render_template, request, session, jsonify, redirect, url_for
 
 from datetime import datetime
-from config import SERVICE_DIR, REMOTE_ASSISTANCE_FILE, VISITOR_CODE_FILE, FRPC_SERVER_URL, SCRIPT_DIR
+from config import REMOTE_ASSISTANCE_FILE, VISITOR_CODE_FILE, FRPC_SERVER_URL, SCRIPT_DIR
+import config
 from utils import generate_bind_port, get_link_value, compare_json_content
 from frpc_service import (
     check_frpc_running, restart_frpc, start_frpc, stop_frpc,
@@ -23,7 +24,7 @@ web_bp = Blueprint('web', __name__)
 def index():
     # 读取主配置
     frpc_config = []
-    config_file = SERVICE_DIR / "frpc.toml"
+    config_file = config.SERVICE_DIR / "frpc.toml"
     
     # 尝试解析现有的 config (如果需要展示详情)
     # 目前前端可能主要依赖 API 获取配置或者静态展示
@@ -101,7 +102,7 @@ def system_mac():
 @require_login
 def get_config_main():
     """获取主配置"""
-    config_file = SERVICE_DIR / "register_proxy.json"
+    config_file = config.SERVICE_DIR / "register_proxy.json"
     
     # 如果文件不存在，尝试从 conf 目录（只读模板）加载，或者返回空
     if not config_file.exists():
@@ -128,7 +129,7 @@ def get_config_main():
 @require_login
 def get_config_tmp():
     """获取临时配置"""
-    config_file = SERVICE_DIR / "register_proxy_tmp.json"
+    config_file = config.SERVICE_DIR / "register_proxy_tmp.json"
     
     if not config_file.exists():
         template_file = SCRIPT_DIR / "conf" / "register_proxy_tmp.json"
@@ -226,7 +227,7 @@ def save_config():
             except:
                 continue
                 
-        with open(SERVICE_DIR / "register_proxy.json", 'w') as f:
+        with open(config.SERVICE_DIR / "register_proxy.json", 'w') as f:
             json.dump(cleaned_main_config, f, indent=4)
         
         # 调用注册函数同步配置到云端并重启frpc
@@ -255,7 +256,7 @@ def save_config():
             except:
                 continue
                 
-        with open(SERVICE_DIR / "register_proxy_tmp.json", 'w') as f:
+        with open(config.SERVICE_DIR / "register_proxy_tmp.json", 'w') as f:
             json.dump(cleaned_tmp_config, f, indent=4)
     except Exception as e:
         syslog.syslog(syslog.LOG_ERR, f"Save tmp config failed: {str(e)}")

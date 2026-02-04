@@ -5,8 +5,12 @@ import json
 import time
 from pathlib import Path
 
-from config import SERVICE_DIR, SCRIPT_DIR, COMMON_SH, VISITOR_CODE_FILE, DATA_DIR
+from config import SCRIPT_DIR, COMMON_SH, VISITOR_CODE_FILE, DATA_DIR, AUTH_EMAIL, AUTH_PASSWORD
+import config
 from utils import prepare_env, compare_json_content, generate_bind_port, get_link_value, enc_password
+import shutil
+# 延迟导入，避免循环依赖 (如果 cloud_service 导入 frpc_service)
+import cloud_service
 
 # 全局 FRPC 进程句柄
 FRPC_PROCESS = None
@@ -22,12 +26,16 @@ def start_frpc():
     """启动frpc主进程"""
     global FRPC_PROCESS
     try:
-        config_file = SERVICE_DIR / "frpc.toml"
+        config_file = config.SERVICE_DIR / "frpc.toml"
         if not config_file.exists():
             syslog.syslog(syslog.LOG_INFO, "frpc.toml 不存在，跳过启动 frpc")
             return False
         
-        frpc_binary = "/usr/local/bin/frpc"
+        # 优先查找本地路径
+        frpc_binary = config.SERVICE_DIR / "bin" / "frpc"
+        if not frpc_binary.exists():
+            frpc_binary = "/usr/local/bin/frpc"
+            
         if not os.path.exists(frpc_binary):
             # 尝试备选路径
             frpc_binary = shutil.which("frpc") or "/usr/bin/frpc"
@@ -36,7 +44,7 @@ def start_frpc():
                 return False
             
         # 启动 frpc 进程
-        log_file_path = SERVICE_DIR / "frpc.log"
+        log_file_path = config.SERVICE_DIR / "frpc.log"
         log_file = open(log_file_path, 'a')
         FRPC_PROCESS = subprocess.Popen(
             [frpc_binary, '-c', str(config_file)],
@@ -125,8 +133,8 @@ def register_frpc_proxy():
             return False
         
         # 1. 转换配置格式
-        input_file = SERVICE_DIR / "register_proxy.json"
-        cloud_file = SERVICE_DIR / "register_proxy_cloud.json"
+        input_file = config.SERVICE_DIR / "register_proxy.json"
+        cloud_file = config.SERVICE_DIR / "register_proxy_cloud.json"
         
         # 如果不存在，尝试从模板复制 (web_routes 里也做了类似事情，这里双重保险)
         if not input_file.exists():
@@ -139,10 +147,27 @@ def register_frpc_proxy():
              syslog.syslog(syslog.LOG_ERR, "Failed to convert register_proxy.json to cloud format")
              return False
 
-        # 2. 设置环境变量并调用register_frpc_proxy函数
+        # 1.5 从本地 ieg_auth 获取认证信息
         env = os.environ.copy()
+        
+        from ieg_auth import get_current_user_info
+        auth_info = get_current_user_info()
+        
+        if isinstance(auth_info, dict):
+             if auth_info.get('companyid'):
+                 env['REMOTE_COMPANYID'] = str(auth_info['companyid'])
+             if auth_info.get('userid'):
+                 env['REMOTE_USERID'] = str(auth_info['userid'])
+             if auth_info.get('email'):
+                 env['REMOTE_ACCOUNT'] = str(auth_info['email'])
+        else:
+             syslog.syslog(syslog.LOG_WARNING, f"Failed to get auth info from local iEG service: {auth_info}")
+
+        # 2. 设置环境变量并调用register_frpc_proxy函数
         env['REGISTER_FORCE'] = 'true'
         env['PROXY_JSON_FILE'] = str(cloud_file) # 传递转换后的文件
+        env['SERVICE_DIR'] = str(config.SERVICE_DIR)
+        env['DATA_DIR'] = str(config.DATA_DIR)
         
         # 执行bash命令调用register_frpc_proxy函数
         cmd = f"""
@@ -161,7 +186,7 @@ def register_frpc_proxy():
         )
         
         # 验证配置文件是否成功更新
-        target_config = SERVICE_DIR / "frpc.toml"
+        target_config = config.SERVICE_DIR / "frpc.toml"
         if target_config.exists():
             import time as time_module
             file_mtime = target_config.stat().st_mtime
@@ -178,7 +203,7 @@ def register_frpc_proxy():
 # 临时 FRPC 管理逻辑 (保持原样移植)
 def check_tmp_frpc_running():
     try:
-        pid_file = SERVICE_DIR / "frpc_tmp.pid"
+        pid_file = config.SERVICE_DIR / "frpc_tmp.pid"
         if not pid_file.exists(): return False
         with open(pid_file, 'r') as f: pid = int(f.read().strip())
         subprocess.run(['kill', '-0', str(pid)], check=True, capture_output=True)
@@ -187,9 +212,9 @@ def check_tmp_frpc_running():
 
 def start_tmp_frpc():
     try:
-        config_file = SERVICE_DIR / "frpc_tmp.toml"
+        config_file = config.SERVICE_DIR / "frpc_tmp.toml"
         if not config_file.exists(): return False
-        frpc_binary = SERVICE_DIR / "bin" / "frpc"
+        frpc_binary = config.SERVICE_DIR / "bin" / "frpc"
         if not frpc_binary.exists(): 
             # 尝试系统路径
             import shutil
@@ -197,16 +222,16 @@ def start_tmp_frpc():
             if not frpc_binary or not os.path.exists(frpc_binary):
                  return False
 
-        log_file = open(SERVICE_DIR / "frpc_tmp.log", 'a')
+        log_file = open(config.SERVICE_DIR / "frpc_tmp.log", 'a')
         process = subprocess.Popen([str(frpc_binary), '-c', str(config_file)], stdout=log_file, stderr=subprocess.STDOUT, start_new_session=True)
-        pid_file = SERVICE_DIR / "frpc_tmp.pid"
+        pid_file = config.SERVICE_DIR / "frpc_tmp.pid"
         with open(pid_file, 'w') as f: f.write(str(process.pid))
         return True
     except Exception as e: return False
 
 def stop_tmp_frpc():
     try:
-        pid_file = SERVICE_DIR / "frpc_tmp.pid"
+        pid_file = config.SERVICE_DIR / "frpc_tmp.pid"
         if pid_file.exists():
             with open(pid_file, 'r') as f: pid = int(f.read().strip())
             try: subprocess.run(['kill', str(pid)], check=True, timeout=2)
@@ -220,9 +245,9 @@ def stop_tmp_frpc():
 def cleanup_tmp_frpc_files():
     try:
         stop_tmp_frpc()
-        config_file = SERVICE_DIR / "frpc_tmp.toml"
+        config_file = config.SERVICE_DIR / "frpc_tmp.toml"
         if config_file.exists(): config_file.unlink()
-        pid_file = SERVICE_DIR / "frpc_tmp.pid"
+        pid_file = config.SERVICE_DIR / "frpc_tmp.pid"
         if pid_file.exists(): pid_file.unlink()
         if VISITOR_CODE_FILE.exists(): VISITOR_CODE_FILE.unlink()
         return True
@@ -231,8 +256,8 @@ def cleanup_tmp_frpc_files():
 def register_tmp_proxy():
     try:
         # 1. 转换配置格式
-        input_file = SERVICE_DIR / "register_proxy_tmp.json"
-        cloud_file = SERVICE_DIR / "register_proxy_tmp_cloud.json"
+        input_file = config.SERVICE_DIR / "register_proxy_tmp.json"
+        cloud_file = config.SERVICE_DIR / "register_proxy_tmp_cloud.json"
         
         # 如果不存在，尝试从模板复制
         if not input_file.exists():
@@ -244,9 +269,26 @@ def register_tmp_proxy():
         if not convert_to_cloud_format(input_file, cloud_file):
              return False, "Failed to convert tmp config format"
 
-        # 2. 调用 common.sh
+        # 1.5 从本地 ieg_auth 获取认证信息
         env = os.environ.copy()
+        
+        from ieg_auth import get_current_user_info
+        auth_info = get_current_user_info()
+        
+        if isinstance(auth_info, dict):
+             if auth_info.get('companyid'):
+                 env['REMOTE_COMPANYID'] = str(auth_info['companyid'])
+             if auth_info.get('userid'):
+                 env['REMOTE_USERID'] = str(auth_info['userid'])
+             if auth_info.get('email'):
+                 env['REMOTE_ACCOUNT'] = str(auth_info['email'])
+        else:
+             syslog.syslog(syslog.LOG_WARNING, f"Failed to get auth info from local iEG service: {auth_info}")
+
+        # 2. 调用 common.sh
         env['PROXY_JSON_FILE'] = str(cloud_file)
+        env['SERVICE_DIR'] = str(config.SERVICE_DIR)
+        env['DATA_DIR'] = str(config.DATA_DIR)
         
         cmd = f'cd {SCRIPT_DIR} && source {COMMON_SH} && register_tmp_frpc_proxy'
         result = subprocess.run(['bash', '-c', cmd], capture_output=True, text=True, env=env)
