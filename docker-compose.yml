@@ -6,12 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: linknlink-remote
     restart: unless-stopped
+    network_mode: host
     environment:
-      # 在 bridge 模式下，使用 host.docker.internal 访问宿主机
-      HADDONS_API_BASE_URL: ${HADDONS_API_BASE_URL:-http://host.docker.internal:8099}
-      # 代理目标地址 (Bridge模式: host.docker.internal)
-      TARGET_IP: ${TARGET_IP:-host.docker.internal}
-    ports:
-      - "8888:8888"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+      HADDONS_API_BASE_URL: ${HADDONS_API_BASE_URL:-http://localhost:8099}
+      TARGET_IP: ${TARGET_IP:-localhost}
