@@ -295,7 +295,7 @@ def register_tmp_proxy():
                  shutil.copy(template_file, input_file)
         
         if not input_file.exists():
-            return False, "register_proxy_tmp.json 不存在"
+            return False, "register_proxy_tmp.json not found"
 
         with open(input_file, 'r') as f:
             proxy_list = json.load(f)
@@ -317,7 +317,7 @@ def register_tmp_proxy():
                 return True, visitor_code
             return True, ""
         else:
-            return False, visitor_code or "获取临时配置失败"
+            return False, visitor_code or "Failed to get temporary config"
 
     except Exception as e:
         return False, str(e)

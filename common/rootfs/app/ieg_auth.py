@@ -101,7 +101,7 @@ def get_current_user_info():
                     'countrycode': user_data.get('country')
                 }
             else:
-                msg = data.get('msg', '获取用户信息失败')
+                msg = data.get('msg', 'Failed to get user info')
                 logger.warning(f"Get active user failed: {msg}")
                 return msg
         else:

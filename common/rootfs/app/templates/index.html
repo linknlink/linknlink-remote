@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LinknLink Remote 配置管理</title>
+    <title>LinknLink Remote Configuration</title>
     <style>
         * {
             margin: 0;
@@ -407,94 +407,96 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>LinknLink Remote 配置管理</h1>
+            <h1>LinknLink Remote Configuration</h1>
         </div>
 
         <div class="system-info">
-            <h3>系统信息</h3>
+            <h3>System Info</h3>
             <div class="system-info-item">
-                <span class="system-info-label">主网卡MAC地址:</span>
-                <span class="system-info-value" id="macAddress">加载中...</span>
+                <span class="system-info-label">Primary MAC:</span>
+                <span class="system-info-value" id="macAddress">Loading...</span>
             </div>
         </div>
 
         <div class="service-status">
-            <h3>FRPC服务状态</h3>
+            <h3>FRPC Service Status</h3>
             <div class="service-controls">
                 <div>
-                    主服务: <span class="status-badge" id="mainServiceStatus">检查中...</span>
+                    Main Service: <span class="status-badge" id="mainServiceStatus">Checking...</span>
                 </div>
-                <button class="btn btn-start" onclick="startService()" id="btnStart">启动服务</button>
-                <button class="btn btn-stop" onclick="stopService()" id="btnStop">停止服务</button>
-                <button class="btn btn-restart" onclick="restartService()" id="btnRestart">重启服务</button>
-                <button class="btn btn-secondary" onclick="checkServiceStatus()">刷新状态</button>
+                <button class="btn btn-start" onclick="startService()" id="btnStart">Start</button>
+                <button class="btn btn-stop" onclick="stopService()" id="btnStop">Stop</button>
+                <button class="btn btn-restart" onclick="restartService()" id="btnRestart">Restart</button>
+                <button class="btn btn-secondary" onclick="checkServiceStatus()">Refresh</button>
             </div>
         </div>
 
         <div class="download-link">
-            LinknLink Remote控制端：<a href="https://ixgdata.linklinkiot.com/ixg/frpclient-windows-amd64-latest.zip"
-                target="_blank">下载</a>
+            LinknLink Remote Client: <a href="https://ixgdata.linklinkiot.com/ixg/frpclient-windows-amd64-latest.zip"
+                target="_blank">Download</a>
         </div>
 
         <div id="message" class="message"></div>
 
         <div class="section">
-            <div class="section-title">主配置</div>
+            <div class="section-title">Main Config</div>
             <table class="config-table">
                 <thead>
                     <tr>
-                        <th>服务名称</th>
-                        <th>本地端口</th>
-                        <th>绑定端口</th>
-                        <th>链接</th>
-                        <th>操作</th>
+                        <th>Service Name</th>
+                        <th>Local Port</th>
+                        <th>Bind Port</th>
+                        <th>Link</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="mainConfigTable">
                     <!-- 动态生成 -->
                 </tbody>
             </table>
-            <button class="btn btn-secondary" onclick="addMainConfigRow()" id="addMainBtn">添加服务</button>
-            <button class="btn btn-secondary" onclick="resetMainConfig()" style="margin-left: 10px;">恢复默认</button>
+            <button class="btn btn-secondary" onclick="addMainConfigRow()" id="addMainBtn">Add Service</button>
+            <button class="btn btn-secondary" onclick="resetMainConfig()" style="margin-left: 10px;">Reset
+                Default</button>
         </div>
 
         <div class="section">
-            <div class="section-title">远程协助 (RemoteAssistance)</div>
+            <div class="section-title">Remote Assistance</div>
             <div class="remote-assistance">
                 <input type="checkbox" id="remoteAssistance">
-                <label for="remoteAssistance">启用远程协助</label>
+                <label for="remoteAssistance">Enable Remote Assistance</label>
             </div>
             <div id="visitorCodeDisplay"
                 style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 4px; display: none;">
-                <strong>访客码 (Visitor Code):</strong>
+                <strong>Visitor Code:</strong>
                 <span id="visitorCode"
                     style="font-family: monospace; font-size: 18px; color: #4CAF50; margin-left: 10px;"></span>
             </div>
         </div>
 
         <div class="section" id="tmpConfigSection" style="display: none;">
-            <div class="section-title">临时配置</div>
+            <div class="section-title">Temporary Config</div>
             <table class="config-table">
                 <thead>
                     <tr>
-                        <th>服务名称</th>
-                        <th>本地端口</th>
-                        <th>绑定端口</th>
-                        <th>链接</th>
-                        <th>操作</th>
+                        <th>Service Name</th>
+                        <th>Local Port</th>
+                        <th>Bind Port</th>
+                        <th>Link</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody id="tmpConfigTable">
                     <!-- 动态生成 -->
                 </tbody>
             </table>
-            <button class="btn btn-secondary" onclick="addTmpConfigRow()" id="addTmpBtn">添加服务</button>
-            <button class="btn btn-secondary" onclick="resetTmpConfig()" style="margin-left: 10px;">恢复默认</button>
+            <button class="btn btn-secondary" onclick="addTmpConfigRow()" id="addTmpBtn">Add Service</button>
+            <button class="btn btn-secondary" onclick="resetTmpConfig()" style="margin-left: 10px;">Reset
+                Default</button>
         </div>
 
         <div class="actions">
-            <button class="btn btn-primary" onclick="saveConfig()">保存配置</button>
-            <button class="btn btn-secondary" onclick="loadConfig()">重新加载</button>
+            <button class="btn btn-primary" onclick="saveConfig()">Save Config</button>
+            <button class="btn btn-secondary" onclick="loadConfig()">Reload</button>
         </div>
     </div>
 
@@ -502,14 +504,14 @@
     <div class="modal-overlay" id="confirmModal">
         <div class="modal-container">
             <div class="modal-header">
-                <div class="modal-title" id="modalTitle">提示</div>
+                <div class="modal-title" id="modalTitle">Notice</div>
             </div>
             <div class="modal-body" id="modalMessage">
-                确定执行此操作吗？
+                Are you sure?
             </div>
             <div class="modal-footer">
-                <button class="btn btn-modal btn-modal-cancel" onclick="closeModal(false)">取消</button>
-                <button class="btn btn-modal btn-modal-confirm" onclick="closeModal(true)">确定</button>
+                <button class="btn btn-modal btn-modal-cancel" onclick="closeModal(false)">Cancel</button>
+                <button class="btn btn-modal btn-modal-confirm" onclick="closeModal(true)">Confirm</button>
             </div>
         </div>
     </div>
@@ -518,7 +520,7 @@
         // ============= Modal Control =============
         let confirmResolve = null;
 
-        function showConfirm(message, title = '提示') {
+        function showConfirm(message, title = 'Notice') {
             const modal = document.getElementById('confirmModal');
             document.getElementById('modalTitle').textContent = title;
             document.getElementById('modalMessage').textContent = message;
@@ -557,7 +559,7 @@
                         if (macAddress) {
                             macElement.textContent = macAddress;
                         } else {
-                            macElement.textContent = '未找到';
+                            macElement.textContent = 'Not Found';
                             macElement.style.color = '#999';
                         }
                     }
@@ -566,7 +568,7 @@
                 console.error('加载系统信息失败:', error);
                 const macElement = document.getElementById('macAddress');
                 if (macElement) {
-                    macElement.textContent = '加载失败';
+                    macElement.textContent = 'Load Failed';
                     macElement.style.color = '#f44336';
                 }
             }
@@ -587,13 +589,13 @@
                     const btnRestart = document.getElementById('btnRestart');
 
                     if (mainRunning) {
-                        statusBadge.textContent = '运行中';
+                        statusBadge.textContent = 'Running';
                         statusBadge.className = 'status-badge running';
                         btnStart.disabled = true;
                         btnStop.disabled = false;
                         btnRestart.disabled = false;
                     } else {
-                        statusBadge.textContent = '已停止';
+                        statusBadge.textContent = 'Stopped';
                         statusBadge.className = 'status-badge stopped';
                         btnStart.disabled = false;
                         btnStop.disabled = true;
@@ -601,18 +603,18 @@
                     }
                 }
             } catch (error) {
-                console.error('检查服务状态失败:', error);
+                console.error('Failed to check service status:', error);
             }
         }
 
         async function startService() {
-            if (!await showConfirm('确定要启动FRPC服务吗？')) {
+            if (!await showConfirm('Are you sure to start FRPC service?')) {
                 return;
             }
 
             const btn = document.getElementById('btnStart');
             btn.disabled = true;
-            btn.textContent = '启动中...';
+            btn.textContent = 'Starting...';
 
             try {
                 const response = await fetch('/api/service/start', { method: 'POST' });
@@ -622,24 +624,24 @@
                     showMessage(data.message, 'success');
                     await checkServiceStatus();
                 } else {
-                    showMessage(data.message || '启动服务失败', 'error');
+                    showMessage(data.message || 'Start failed', 'error');
                 }
             } catch (error) {
-                showMessage('启动服务失败: ' + error.message, 'error');
+                showMessage('Start failed: ' + error.message, 'error');
             } finally {
-                btn.textContent = '启动服务';
+                btn.textContent = 'Start';
                 await checkServiceStatus();
             }
         }
 
         async function stopService() {
-            if (!await showConfirm('确定要停止FRPC服务吗？这将断开所有远程连接。', '警告')) {
+            if (!await showConfirm('Are you sure to stop FRPC service? This will disconnect all remote connections.', 'Warning')) {
                 return;
             }
 
             const btn = document.getElementById('btnStop');
             btn.disabled = true;
-            btn.textContent = '停止中...';
+            btn.textContent = 'Stopping...';
 
             try {
                 const response = await fetch('/api/service/stop', { method: 'POST' });
@@ -649,24 +651,24 @@
                     showMessage(data.message, 'success');
                     await checkServiceStatus();
                 } else {
-                    showMessage(data.message || '停止服务失败', 'error');
+                    showMessage(data.message || 'Stop failed', 'error');
                 }
             } catch (error) {
-                showMessage('停止服务失败: ' + error.message, 'error');
+                showMessage('Save config failed: ' + error.message, 'error');
             } finally {
-                btn.textContent = '停止服务';
+                btn.textContent = 'Stop';
                 await checkServiceStatus();
             }
         }
 
         async function restartService() {
-            if (!await showConfirm('确定要重启FRPC服务吗？这将暂时断开所有远程连接。', '警告')) {
+            if (!await showConfirm('Are you sure to restart FRPC service? This will temporarily disconnect all remote connections.', 'Warning')) {
                 return;
             }
 
             const btn = document.getElementById('btnRestart');
             btn.disabled = true;
-            btn.textContent = '重启中...';
+            btn.textContent = 'Restarting...';
 
             try {
                 const response = await fetch('/api/service/restart', { method: 'POST' });
@@ -676,12 +678,12 @@
                     showMessage(data.message, 'success');
                     await checkServiceStatus();
                 } else {
-                    showMessage(data.message || '重启服务失败', 'error');
+                    showMessage(data.message || 'Restart failed', 'error');
                 }
             } catch (error) {
-                showMessage('重启服务失败: ' + error.message, 'error');
+                showMessage('Restart failed: ' + error.message, 'error');
             } finally {
-                btn.textContent = '重启服务';
+                btn.textContent = 'Restart';
                 await checkServiceStatus();
             }
         }
@@ -722,9 +724,9 @@
                 }
 
                 renderConfig();
-                showMessage('配置加载成功', 'success');
+                showMessage('Config loaded successfully', 'success');
             } catch (error) {
-                showMessage('加载配置失败: ' + error.message, 'error');
+                showMessage('Load config failed: ' + error.message, 'error');
             }
         }
 
@@ -745,11 +747,11 @@
             const addTmpBtn = document.getElementById('addTmpBtn');
             if (addMainBtn) {
                 addMainBtn.disabled = mainConfig.length >= 10;
-                addMainBtn.textContent = mainConfig.length >= 10 ? '已达到最大数量(10)' : '添加服务';
+                addMainBtn.textContent = mainConfig.length >= 10 ? 'Max Limit Reached (10)' : 'Add Service';
             }
             if (addTmpBtn) {
                 addTmpBtn.disabled = tmpConfig.length >= 10;
-                addTmpBtn.textContent = tmpConfig.length >= 10 ? '已达到最大数量(10)' : '添加服务';
+                addTmpBtn.textContent = tmpConfig.length >= 10 ? 'Max Limit Reached (10)' : 'Add Service';
             }
 
             // 显示访客码
@@ -853,18 +855,18 @@
             const actionCell = document.createElement('td');
             const deleteBtn = document.createElement('button');
             deleteBtn.className = 'btn btn-danger';
-            deleteBtn.textContent = '删除';
+            deleteBtn.textContent = 'Delete';
             deleteBtn.onclick = () => {
                 if (type === 'main') {
                     if (mainConfig.length <= 1) {
-                        showMessage('主配置至少需要保留一个服务', 'error');
+                        showMessage('Main config must have at least one service', 'error');
                         return;
                     }
                     mainConfig.splice(index, 1);
                 } else {
                     const remoteAssistanceChecked = document.getElementById('remoteAssistance').checked;
                     if (remoteAssistanceChecked && tmpConfig.length <= 1) {
-                        showMessage('启用远程协助时，临时配置至少需要保留一个服务', 'error');
+                        showMessage('Temporary config must have at least one service when remote assistance is enabled', 'error');
                         return;
                     }
                     tmpConfig.splice(index, 1);
@@ -907,7 +909,7 @@
         // 添加主配置行（最多10个）
         function addMainConfigRow() {
             if (mainConfig.length >= 10) {
-                showMessage('主配置最多只能添加10个服务', 'error');
+                showMessage('Main config can have at most 10 services', 'error');
                 return;
             }
             mainConfig.push({
@@ -922,7 +924,7 @@
         // 添加临时配置行（最多10个）
         function addTmpConfigRow() {
             if (tmpConfig.length >= 10) {
-                showMessage('临时配置最多只能添加10个服务', 'error');
+                showMessage('Temporary config can have at most 10 services', 'error');
                 return;
             }
             tmpConfig.push({
@@ -936,7 +938,7 @@
 
         // 恢复主配置为默认
         async function resetMainConfig() {
-            if (!await showConfirm('确定要恢复主配置为默认值吗？当前配置将被覆盖。', '确认恢复')) {
+            if (!await showConfirm('Are you sure to reset main config to default? Current config will be overwritten.', 'Confirm Reset')) {
                 return;
             }
             try {
@@ -945,19 +947,19 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showMessage('主配置已恢复为默认值', 'success');
+                    showMessage('Main config reset to default', 'success');
                     await loadConfig();
                 } else {
-                    showMessage('恢复失败: ' + (data.message || '未知错误'), 'error');
+                    showMessage('Reset failed: ' + (data.message || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                showMessage('恢复失败: ' + error.message, 'error');
+                showMessage('Reset failed: ' + error.message, 'error');
             }
         }
 
         // 恢复临时配置为默认
         async function resetTmpConfig() {
-            if (!await showConfirm('确定要恢复临时配置为默认值吗？当前配置将被覆盖。', '确认恢复')) {
+            if (!await showConfirm('Are you sure to reset temporary config to default? Current config will be overwritten.', 'Confirm Reset')) {
                 return;
             }
             try {
@@ -966,13 +968,13 @@
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showMessage('临时配置已恢复为默认值', 'success');
+                    showMessage('Temporary config reset to default', 'success');
                     await loadConfig();
                 } else {
-                    showMessage('恢复失败: ' + (data.message || '未知错误'), 'error');
+                    showMessage('Reset failed: ' + (data.message || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                showMessage('恢复失败: ' + error.message, 'error');
+                showMessage('Reset failed: ' + error.message, 'error');
             }
         }
 
@@ -983,13 +985,13 @@
 
                 // 验证：主配置至少有一个
                 if (mainConfig.length === 0) {
-                    showMessage('主配置至少需要有一个服务', 'error');
+                    showMessage('Main config must have at least one service', 'error');
                     return;
                 }
 
                 // 验证：远程协助启用时，临时配置至少有一个
                 if (remoteAssistance && tmpConfig.length === 0) {
-                    showMessage('启用远程协助时，临时配置至少需要有一个服务', 'error');
+                    showMessage('Temporary config must have at least one service when remote assistance is enabled', 'error');
                     return;
                 }
 
@@ -1010,7 +1012,7 @@
 
                 const data = await response.json();
                 if (data.success) {
-                    showMessage(data.message || '配置保存成功', 'success');
+                    showMessage(data.message || 'Config saved successfully', 'success');
                     // 如果返回了访客码，更新显示
                     if (data.visitorCode) {
                         visitorCode = data.visitorCode;
@@ -1021,14 +1023,14 @@
                     // 重新加载配置以确保同步
                     await loadConfig();
                 } else {
-                    showMessage('配置保存失败: ' + (data.message || '未知错误'), 'error');
+                    showMessage('Config save failed: ' + (data.message || 'Unknown error'), 'error');
                     // 如果需要重新登录
                     if (data.needLogin) {
                         setTimeout(() => window.location.href = '/', 2000);
                     }
                 }
             } catch (error) {
-                showMessage('保存配置失败: ' + error.message, 'error');
+                showMessage('Save config failed: ' + error.message, 'error');
             }
         }
 

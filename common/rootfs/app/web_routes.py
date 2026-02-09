@@ -291,38 +291,38 @@ def _ensure_config_consistency():
 @require_login
 def service_start():
     if not _ensure_config_consistency():
-        return jsonify({'success': False, 'message': '服务启动失败：配置自动修正失败，请检查日志'})
+        return jsonify({'success': False, 'message': 'Service start failed: Config auto-correction failed, please check logs'})
         
     if start_frpc():
-         return jsonify({'success': True, 'message': '服务启动成功'})
+         return jsonify({'success': True, 'message': 'Service started successfully'})
     else:
-         return jsonify({'success': False, 'message': '服务启动失败'})
+         return jsonify({'success': False, 'message': 'Service start failed'})
 
 @web_bp.route('/api/service/stop', methods=['POST'])
 @require_login
 def service_stop():
     if stop_frpc():
-        return jsonify({'success': True, 'message': '服务停止成功'})
+        return jsonify({'success': True, 'message': 'Service stopped successfully'})
     else:
-        return jsonify({'success': False, 'message': '服务停止失败'})
+        return jsonify({'success': False, 'message': 'Service stop failed'})
 
 @web_bp.route('/api/service/restart', methods=['POST'])
 @require_login
 def service_restart():
     if not _ensure_config_consistency():
-        return jsonify({'success': False, 'message': '服务重启失败：配置自动修正失败，请检查日志'})
+        return jsonify({'success': False, 'message': 'Service restart failed: Config auto-correction failed, please check logs'})
         
     if restart_frpc():
-        return jsonify({'success': True, 'message': '服务重启成功'})
+        return jsonify({'success': True, 'message': 'Service restarted successfully'})
     else:
-        return jsonify({'success': False, 'message': '服务重启失败'})
+        return jsonify({'success': False, 'message': 'Service restart failed'})
 
 @web_bp.route('/api/save_config', methods=['POST'])
 @require_login
 def save_config():
     data = request.json
     if not data:
-        return jsonify({'success': False, 'message': '无数据'})
+        return jsonify({'success': False, 'message': 'No data'})
         
     main_config = data.get('mainConfig', [])
     tmp_config_data = data.get('tmpConfig', [])
@@ -351,13 +351,13 @@ def save_config():
         from frpc_service import register_frpc_proxy
         if register_frpc_proxy():
             restart_frpc()
-            msg_suffix = "主服务配置已更新。"
+            msg_suffix = "Main service config updated."
         else:
-             message = "主服务配置更新失败（云端同步失败）。"
+             message = "Main service config update failed (Cloud sync failed)."
              
     except Exception as e:
         logger.error(f"Save main config failed: {str(e)}")
-        return jsonify({'success': False, 'message': f'保存主配置失败: {str(e)}'})
+        return jsonify({'success': False, 'message': f'Save main config failed: {str(e)}'})
 
     # 2. 保存临时配置到 register_proxy_tmp.json
     try:
@@ -393,32 +393,32 @@ def save_config():
             success, result = register_tmp_proxy()
             if success:
                 if start_tmp_frpc():
-                    visitor_code_msg = f" 临时服务已启动，访客码: {result}"
+                    visitor_code_msg = f" Temporary service started, Visitor Code: {result}"
                 else:
-                    visitor_code_msg = " 临时服务启动失败"
+                    visitor_code_msg = " Temporary service start failed"
             else:
-                visitor_code_msg = f" 临时服务注册失败: {result}"
+                visitor_code_msg = f" Temporary service registration failed: {result}"
         else:
             # 关闭
             cleanup_tmp_frpc_files()
-            visitor_code_msg = " 临时服务已停止"
+            visitor_code_msg = " Temporary service stopped"
     elif remote_assistance and cleaned_tmp_config: 
         # 如果配置有变，尝试重新注册
         success, result = register_tmp_proxy()
         if success:
              stop_tmp_frpc()
              start_tmp_frpc()
-             visitor_code_msg = " 临时服务配置已更新"
+             visitor_code_msg = " Temporary service config updated"
             
-    return jsonify({'success': True, 'message': f'配置保存成功。{msg_suffix}{visitor_code_msg}'})
+    return jsonify({'success': True, 'message': f'Config saved successfully. {msg_suffix}{visitor_code_msg}'})
 
 @web_bp.route('/api/restart', methods=['POST'])
 @require_login
 def restart_service():
     if restart_frpc():
-        return jsonify({'success': True, 'message': '服务重启成功'})
+        return jsonify({'success': True, 'message': 'Service restarted successfully'})
     else:
-        return jsonify({'success': False, 'message': '服务重启失败'})
+        return jsonify({'success': False, 'message': 'Service restart failed'})
 
 @web_bp.route('/api/config/reset/main', methods=['POST'])
 @require_login
@@ -440,19 +440,19 @@ def reset_config_main():
             # 重启服务使得配置生效
             if register_frpc_proxy():
                 restart_frpc()
-                return jsonify({'success': True, 'message': '主配置已重置并生效'})
+                return jsonify({'success': True, 'message': 'Main config reset and effective'})
             else:
-                return jsonify({'success': False, 'message': '主配置重置成功但同步失败'})
+                return jsonify({'success': False, 'message': 'Main config reset successful but sync failed'})
         else:
             # 如果没有模板，创建一个空的列表
             with open(target_file, 'w') as f:
                 json.dump([], f, indent=4)
             restart_frpc()
-            return jsonify({'success': True, 'message': '主配置已清空'})
+            return jsonify({'success': True, 'message': 'Main config cleared'})
 
     except Exception as e:
         logger.error(f"Reset main config failed: {str(e)}")
-        return jsonify({'success': False, 'message': f'重置主配置失败: {str(e)}'})
+        return jsonify({'success': False, 'message': f'Reset main config failed: {str(e)}'})
 
 @web_bp.route('/api/config/reset/tmp', methods=['POST'])
 @require_login
@@ -471,8 +471,8 @@ def reset_config_tmp():
             with open(target_file, 'w') as f:
                 json.dump([], f, indent=4)
                 
-        return jsonify({'success': True, 'message': '临时配置已重置'})
+        return jsonify({'success': True, 'message': 'Temporary config reset'})
 
     except Exception as e:
         logger.error(f"Reset tmp config failed: {str(e)}")
-        return jsonify({'success': False, 'message': f'重置临时配置失败: {str(e)}'})
+        return jsonify({'success': False, 'message': f'Reset temporary config failed: {str(e)}'})
