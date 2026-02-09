@@ -308,6 +308,99 @@
             font-family: monospace;
             font-size: 14px;
         }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-container {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-20px);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .modal-overlay.active .modal-container {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px;
+            color: #666;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .modal-footer {
+            padding: 15px 20px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .btn-modal {
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+
+        .btn-modal-cancel {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-modal-cancel:hover {
+            background: #d5d5d5;
+        }
+
+        .btn-modal-confirm {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-modal-confirm:hover {
+            background: #45a049;
+        }
     </style>
 </head>
 
@@ -405,7 +498,48 @@
         </div>
     </div>
 
+    <!-- Confirm Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">提示</div>
+            </div>
+            <div class="modal-body" id="modalMessage">
+                确定执行此操作吗？
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-modal btn-modal-cancel" onclick="closeModal(false)">取消</button>
+                <button class="btn btn-modal btn-modal-confirm" onclick="closeModal(true)">确定</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        // ============= Modal Control =============
+        let confirmResolve = null;
+
+        function showConfirm(message, title = '提示') {
+            const modal = document.getElementById('confirmModal');
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+
+            modal.classList.add('active');
+
+            return new Promise((resolve) => {
+                confirmResolve = resolve;
+            });
+        }
+
+        function closeModal(result) {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('active');
+
+            if (confirmResolve) {
+                confirmResolve(result);
+                confirmResolve = null;
+            }
+        }
+
         let mainConfig = [];
         let tmpConfig = [];
 
@@ -472,7 +606,7 @@
         }
 
         async function startService() {
-            if (!confirm('确定要启动FRPC服务吗？')) {
+            if (!await showConfirm('确定要启动FRPC服务吗？')) {
                 return;
             }
 
@@ -499,7 +633,7 @@
         }
 
         async function stopService() {
-            if (!confirm('确定要停止FRPC服务吗？这将断开所有远程连接。')) {
+            if (!await showConfirm('确定要停止FRPC服务吗？这将断开所有远程连接。', '警告')) {
                 return;
             }
 
@@ -526,7 +660,7 @@
         }
 
         async function restartService() {
-            if (!confirm('确定要重启FRPC服务吗？这将暂时断开所有远程连接。')) {
+            if (!await showConfirm('确定要重启FRPC服务吗？这将暂时断开所有远程连接。', '警告')) {
                 return;
             }
 
@@ -802,7 +936,7 @@
 
         // 恢复主配置为默认
         async function resetMainConfig() {
-            if (!confirm('确定要恢复主配置为默认值吗？当前配置将被覆盖。')) {
+            if (!await showConfirm('确定要恢复主配置为默认值吗？当前配置将被覆盖。', '确认恢复')) {
                 return;
             }
             try {
@@ -823,7 +957,7 @@
 
         // 恢复临时配置为默认
         async function resetTmpConfig() {
-            if (!confirm('确定要恢复临时配置为默认值吗？当前配置将被覆盖。')) {
+            if (!await showConfirm('确定要恢复临时配置为默认值吗？当前配置将被覆盖。', '确认恢复')) {
                 return;
             }
             try {
