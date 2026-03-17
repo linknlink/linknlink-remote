@@ -49,6 +49,9 @@ RUN \
 # Copy app files
 COPY rootfs /
 
+# Make entrypoint executable
+RUN chmod +x /docker-entrypoint.sh
+
 # Set workdir
 WORKDIR /app
 
@@ -56,4 +59,5 @@ WORKDIR /app
 LABEL     org.opencontainers.image.title="LinknLink Remote"     org.opencontainers.image.description="Enable remote access through the LinknLink platform"     org.opencontainers.image.vendor="LinknLink"     org.opencontainers.image.source="https://github.com/linknlink/linknlink-remote"     org.opencontainers.image.documentation="https://github.com/linknlink/linknlink-remote"
 
 # Run script
-ENTRYPOINT [ "python3", "/app/main.py" ]
+ENTRYPOINT [ "/docker-entrypoint.sh" ]
+CMD [ "python3", "/app/main.py" ]
