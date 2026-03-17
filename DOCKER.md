@@ -38,13 +38,13 @@ docker-compose logs -f
 | `LOG_LEVEL` | 否 | `info` | 日志级别：trace, debug, info, notice, warning, error, fatal |
 
 ### 网络模式
-2. 
-43. 默认配置使用 **Bridge 模式** 并通过 `host.docker.internal` 访问宿主机。
-44. 
-45. 如果需要使用 **Host 模式**（推荐，更简单）：
-46. - 修改 `docker-compose.yml`，启用 `network_mode: host`
-47. - 注释掉 `ports` 和 `extra_hosts` 
-48. - 环境变量设置 `HADDONS_API_BASE_URL=http://127.0.0.1:8099`
+
+默认配置使用 **Bridge 模式** 并通过 `host.docker.internal` 访问宿主机。
+
+如果需要使用 **Host 模式**（推荐，更简单）：
+- 修改 `docker-compose.yml`，启用 `network_mode: host`
+- 注释掉 `ports` 和 `extra_hosts` 
+- 环境变量设置 `HADDONS_API_BASE_URL=http://127.0.0.1:8099`
 
 ### 数据持久化
 
@@ -113,8 +113,9 @@ docker-compose restart
 
 ## 注意事项
 
-2. **数据持久化**：本镜像设计为无状态运行，无需挂载任何数据卷。
-3. **安全性**：`.env` 文件包含敏感信息，请勿提交到版本控制系统
+- **数据持久化**：本镜像设计为无状态运行，无需挂载任何数据卷。
+- **安全性**：`.env` 文件包含敏感信息，请勿提交到版本控制系统
+- **自启动**：容器启动时会自动启动 frpc 服务，支持重试机制（3次重试，每次间隔2秒）
 
 ## 与 Home Assistant Add-on 版本的区别
 
