@@ -4,5 +4,17 @@
         "localPort": 8123,
         "bindPort": 38123,
         "link": true
+    },
+    {
+        "serviceName": "Haddons",
+        "localPort": 8099,
+        "bindPort": 38099,
+        "link": true
+    },
+    {
+        "serviceName": "WebTerminal",
+        "localPort": 7681,
+        "bindPort": 37681,
+        "link": true
     }
 ]
