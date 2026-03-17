@@ -48,60 +48,81 @@ def check_frpc_running():
         return True
     return False
 
-def start_frpc():
-    """启动frpc主进程"""
+def start_frpc(retry_count=3, retry_delay=2):
+    """启动frpc主进程，支持重试
+    
+    Args:
+        retry_count: 重试次数
+        retry_delay: 重试延迟（秒）
+    """
     global FRPC_PROCESS
-    try:
-        config_file = config.SERVICE_DIR / "frpc.toml"
-        if not config_file.exists():
-            logger.info("frpc.toml 不存在，跳过启动 frpc")
-            return False
-        
-        # 二进制查找策略
-        search_paths = [
-            config.SERVICE_DIR / "bin" / "frpc",                        # 1. 配置目录下的 bin
-            Path("/usr/local/bin/frpc"),                                # 2. 标准系统路径
-            Path("/usr/bin/frpc"),                                      # 3. 备选系统路径
-            Path(shutil.which("frpc") or "/usr/bin/frpc")               # 4. PATH 环境变量
-        ]
-        
-        frpc_binary = None
-        for path in search_paths:
-            if path and os.path.exists(path):
-                frpc_binary = path
-                break
+    
+    for attempt in range(retry_count):
+        try:
+            config_file = config.SERVICE_DIR / "frpc.toml"
+            if not config_file.exists():
+                logger.error(f"[尝试 {attempt + 1}/{retry_count}] frpc.toml 不存在")
+                if attempt < retry_count - 1:
+                    time.sleep(retry_delay)
+                    continue
+                return False
+            
+            # 二进制查找策略
+            search_paths = [
+                config.SERVICE_DIR / "bin" / "frpc",                        # 1. 配置目录下的 bin
+                Path("/usr/local/bin/frpc"),                                # 2. 标准系统路径
+                Path("/usr/bin/frpc"),                                      # 3. 备选系统路径
+                Path(shutil.which("frpc") or "/usr/bin/frpc")               # 4. PATH 环境变量
+            ]
+            
+            frpc_binary = None
+            for path in search_paths:
+                if path and os.path.exists(path):
+                    frpc_binary = path
+                    break
+                    
+            if not frpc_binary:
+                logger.error(f"[尝试 {attempt + 1}/{retry_count}] frpc 二进制文件不存在，已尝试路径: " + ", ".join(str(p) for p in search_paths))
+                if attempt < retry_count - 1:
+                    time.sleep(retry_delay)
+                    continue
+                return False
                 
-        if not frpc_binary:
-            logger.error("frpc 二进制文件不存在，已尝试路径: " + ", ".join(str(p) for p in search_paths))
-            return False
+            logger.info(f"[尝试 {attempt + 1}/{retry_count}] 使用 frpc 二进制: {frpc_binary}")
+                
+            # 启动 frpc 进程
+            log_file_path = config.SERVICE_DIR / "frpc.log"
+            # 使用管道捕获输出，而不是直接重定向到文件
+            FRPC_PROCESS = subprocess.Popen(
+                [str(frpc_binary), '-c', str(config_file)],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                start_new_session=True,
+                text=True,     # 以文本模式读取
+                bufsize=1      # 行缓冲
+            )
             
-        logger.info(f"使用 frpc 二进制: {frpc_binary}")
-            
-        # 启动 frpc 进程
-        log_file_path = config.SERVICE_DIR / "frpc.log"
-        # 使用管道捕获输出，而不是直接重定向到文件
-        FRPC_PROCESS = subprocess.Popen(
-            [frpc_binary, '-c', str(config_file)],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            start_new_session=True,
-            text=True,     # 以文本模式读取
-            bufsize=1      # 行缓冲
-        )
-        
-        # 启动后台线程处理日志流
-        log_thread = threading.Thread(
-            target=stream_logs, 
-            args=(FRPC_PROCESS.stdout, log_file_path),
-            daemon=True
-        )
-        log_thread.start()
+            # 启动后台线程处理日志流
+            log_thread = threading.Thread(
+                target=stream_logs, 
+                args=(FRPC_PROCESS.stdout, log_file_path),
+                daemon=True
+            )
+            log_thread.start()
 
-        logger.info(f"frpc 启动成功，PID: {FRPC_PROCESS.pid}")
-        return True
-    except Exception as e:
-        logger.error(f"启动 frpc 异常: {str(e)}")
-        return False
+            logger.info(f"[尝试 {attempt + 1}/{retry_count}] frpc 启动成功，PID: {FRPC_PROCESS.pid}")
+            return True
+            
+        except Exception as e:
+            logger.error(f"[尝试 {attempt + 1}/{retry_count}] 启动 frpc 异常: {str(e)}")
+            if attempt < retry_count - 1:
+                logger.info(f"将在 {retry_delay} 秒后重试...")
+                time.sleep(retry_delay)
+            else:
+                logger.error(f"frpc 启动失败，已重试 {retry_count} 次")
+                return False
+    
+    return False
 
 def stop_frpc():
     """停止frpc主进程"""

@@ -62,7 +62,11 @@ if __name__ == '__main__':
             logger.error("代理自动注册失败，等待手动配置")
 
     if config_file.exists():
-        start_frpc()
+        logger.info("开始启动 frpc 服务...")
+        if start_frpc(retry_count=3, retry_delay=2):
+            logger.info("frpc 服务启动成功")
+        else:
+            logger.error("frpc 服务启动失败，请检查配置和日志")
     else:
         logger.info("等待配置以启动 frpc...")
 
