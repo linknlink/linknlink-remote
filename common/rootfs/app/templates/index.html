@@ -445,9 +445,7 @@
                 <thead>
                     <tr>
                         <th>Service Name</th>
-                        <th>Local Port</th>
-                        <th>Bind Port</th>
-                        <th>Link</th>
+                        <th>Proxy Port</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -480,9 +478,7 @@
                 <thead>
                     <tr>
                         <th>Service Name</th>
-                        <th>Local Port</th>
-                        <th>Bind Port</th>
-                        <th>Link</th>
+                        <th>Proxy Port</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -814,7 +810,7 @@
             };
             nameCell.appendChild(nameInput);
 
-            // 本地端口
+            // 代理端口（本地端口）
             const portCell = document.createElement('td');
             const portInput = document.createElement('input');
             portInput.type = 'number';
@@ -833,24 +829,6 @@
                 renderConfig();
             };
             portCell.appendChild(portInput);
-
-            // 绑定端口（只读）
-            const bindPortCell = document.createElement('td');
-            const bindPortInput = document.createElement('input');
-            bindPortInput.type = 'number';
-            bindPortInput.value = item.bindPort || '';
-            bindPortInput.readOnly = true;
-            bindPortInput.className = 'readonly';
-            bindPortCell.appendChild(bindPortInput);
-
-            // 链接（只读）
-            const linkCell = document.createElement('td');
-            const linkInput = document.createElement('input');
-            linkInput.type = 'text';
-            linkInput.value = item.link ? 'true' : 'false';
-            linkInput.readOnly = true;
-            linkInput.className = 'readonly';
-            linkCell.appendChild(linkInput);
 
             // 操作
             const actionCell = document.createElement('td');
@@ -878,8 +856,6 @@
 
             row.appendChild(nameCell);
             row.appendChild(portCell);
-            row.appendChild(bindPortCell);
-            row.appendChild(linkCell);
             row.appendChild(actionCell);
 
             return row;
