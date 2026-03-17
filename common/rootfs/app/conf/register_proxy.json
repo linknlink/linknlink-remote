@@ -16,5 +16,35 @@
         "localPort": 7681,
         "bindPort": 37681,
         "link": true
+    },
+    {
+        "serviceName": "SSH",
+        "localPort": 22,
+        "bindPort": 30022,
+        "link": false
+    },
+    {
+        "serviceName": "Remote",
+        "localPort": 8888,
+        "bindPort": 38888,
+        "link": true
+    },
+    {
+        "serviceName": "Web",
+        "localPort": 80,
+        "bindPort": 30080,
+        "link": true
+    },
+    {
+        "serviceName": "Web2",
+        "localPort": 443,
+        "bindPort": 30443,
+        "link": true
+    },
+    {
+        "serviceName": "OpenClaw",
+        "localPort": 18789,
+        "bindPort": 48789,
+        "link": true
     }
 ]
