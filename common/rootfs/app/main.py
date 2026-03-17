@@ -2,6 +2,7 @@ import logging
 import sys
 import threading
 import os
+import time
 from flask import Flask
 from werkzeug.serving import WSGIRequestHandler
 
@@ -11,7 +12,7 @@ from config import (
     SESSION_COOKIE_HTTPONLY, SESSION_COOKIE_SAMESITE
 )
 from frpc_service import start_frpc
-from cloud_service import heartbeat_loop
+from cloud_service import heartbeat_loop, CLOUD_AUTH_INFO
 from web_routes import web_bp
 
 # 初始化日志
@@ -35,10 +36,9 @@ app.config['SESSION_COOKIE_SAMESITE'] = SESSION_COOKIE_SAMESITE
 app.register_blueprint(web_bp)
 
 if __name__ == '__main__':
-    # 延迟导入，确保顶层导入不触发环境副作用
     import config
-    
-    # 核心路径初始化逻辑：确保配置和数据目录存在
+
+    # 核心路径初始化
     try:
         config.SERVICE_DIR.mkdir(parents=True, exist_ok=True)
         config.DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -46,40 +46,59 @@ if __name__ == '__main__':
     except Exception as e:
         logger.error(f"无法初始化运行目录: {e}")
 
-    # 使用更新后的路径
     SERVICE_DIR = config.SERVICE_DIR
     DATA_DIR = config.DATA_DIR
 
+    def wait_for_auth(timeout=120):
+        """等待认证信息就绪，最多等待 timeout 秒"""
+        logger.info("等待云端认证信息...")
+        start = time.time()
+        while time.time() - start < timeout:
+            if CLOUD_AUTH_INFO.get('user_id') and CLOUD_AUTH_INFO.get('company_id'):
+                logger.info(f"认证信息就绪: UserID={CLOUD_AUTH_INFO['user_id']}")
+                return True
+            time.sleep(3)
+        logger.error(f"等待认证超时（{timeout}秒），跳过自动注册")
+        return False
+
     def startup_frpc():
-        """在后台线程中启动 frpc 服务，等待 Flask 完全启动后执行"""
-        import time
-        time.sleep(2)  # 等待 Flask 应用启动
-
+        """在后台线程中启动 frpc 服务"""
+        # 如果 frpc.toml 已存在，直接启动，无需等待认证
         config_file = SERVICE_DIR / "frpc.toml"
-        if not config_file.exists():
-            logger.info("frpc.toml 不存在，尝试自动注册...")
-            from frpc_service import register_frpc_proxy
-            if register_frpc_proxy():
-                logger.info("代理自动注册成功")
-            else:
-                logger.error("代理自动注册失败，等待手动配置")
-
         if config_file.exists():
-            logger.info("开始启动 frpc 服务...")
+            logger.info("frpc.toml 已存在，直接启动 frpc 服务...")
+            if start_frpc(retry_count=3, retry_delay=2):
+                logger.info("frpc 服务启动成功")
+            else:
+                logger.error("frpc 服务启动失败，请检查配置和日志")
+            return
+
+        # frpc.toml 不存在，需要先等待认证信息，再自动注册
+        logger.info("frpc.toml 不存在，等待认证信息后自动注册...")
+        if not wait_for_auth(timeout=120):
+            logger.error("认证信息未就绪，无法自动注册，请通过 Web 界面手动配置")
+            return
+
+        from frpc_service import register_frpc_proxy
+        logger.info("开始自动注册代理...")
+        if register_frpc_proxy():
+            logger.info("代理自动注册成功，启动 frpc 服务...")
             if start_frpc(retry_count=3, retry_delay=2):
                 logger.info("frpc 服务启动成功")
             else:
                 logger.error("frpc 服务启动失败，请检查配置和日志")
         else:
-            logger.info("frpc.toml 不存在，等待手动配置后启动 frpc...")
+            logger.error("代理自动注册失败，请通过 Web 界面手动配置")
 
-    # 启动 frpc 后台启动线程
-    frpc_startup_thread = threading.Thread(target=startup_frpc, daemon=True)
-    frpc_startup_thread.start()
-
-    # 启动心跳线程
+    # 先启动心跳线程（它负责获取认证信息）
     heartbeat_thread = threading.Thread(target=heartbeat_loop, daemon=True)
     heartbeat_thread.start()
+    logger.info("心跳线程已启动")
+
+    # 再启动 frpc 后台启动线程
+    frpc_startup_thread = threading.Thread(target=startup_frpc, daemon=True)
+    frpc_startup_thread.start()
+    logger.info("frpc 自启动线程已启动")
 
     # 启动 Flask 应用
     logger.info("启动 Web 服务端口 8888...")

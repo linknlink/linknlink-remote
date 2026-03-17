@@ -189,6 +189,6 @@ def heartbeat_loop():
             send_heartbeat()
             
         except Exception as e:
-            syslog.syslog(syslog.LOG_ERR, f"Heartbeat loop error: {e}")
+            logger.error(f"Heartbeat loop error: {e}")
         
         time.sleep(30)
