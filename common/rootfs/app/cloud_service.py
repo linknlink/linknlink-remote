@@ -181,8 +181,7 @@ def heartbeat_loop():
                      logger.info(f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}")
                 else:
                     # 获取失败，等待一段时间重试
-                    # logger.warning("Failed to get auth info from local iEG service, retrying...")
-                    time.sleep(60)
+                    time.sleep(5)
                     continue
             
             # 发送心跳
