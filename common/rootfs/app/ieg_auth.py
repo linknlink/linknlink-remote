@@ -95,6 +95,7 @@ def get_current_user_info():
                 return {
                     'userid': user_data.get('userid'),
                     'email': user_data.get('email'),
+                    'phone': user_data.get('phone'),
                     'nickname': user_data.get('nickname'),
                     'lid': user_data.get('lid'),
                     'companyid': user_data.get('companyid'),

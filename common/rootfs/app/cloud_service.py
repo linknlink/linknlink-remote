@@ -35,7 +35,7 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
             "did": device_id,
             "name": "iSG-Linux",
             "type": 0,
-            "account": user_info.get('email', ''),
+            "account": user_info.get('email') or user_info.get('phone') or '',
             "proxyList": proxy_list
         }
         
