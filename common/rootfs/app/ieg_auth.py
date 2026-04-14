@@ -98,7 +98,8 @@ def get_current_user_info():
                     'nickname': user_data.get('nickname'),
                     'lid': user_data.get('lid'),
                     'companyid': user_data.get('companyid'),
-                    'countrycode': user_data.get('country')
+                    'countrycode': user_data.get('country'),
+                    'cluster': user_data.get('cluster', 'oversea')  # 集群地区（oversea: 海外, china: 国内）
                 }
             else:
                 msg = data.get('msg', 'Failed to get user info')

@@ -3,7 +3,7 @@ import requests
 import time
 import os
 import json
-from config import CLOUD_API_BASE_URL, HEARTBEAT_API_URL, PROXY_API_URL, TMP_PROXY_API_URL
+import config
 from utils import enc_password
 from device import get_device_id
 
@@ -23,7 +23,7 @@ def cloud_login(email, password):
     调用云端登录接口获取companyid和userid
     """
     try:
-        api_url = f"{CLOUD_API_BASE_URL}/user/pwdlogin"
+        api_url = f"{config.CLOUD_API_BASE_URL}/user/pwdlogin"
         encrypted_password = enc_password(password)
         
         payload = {
@@ -70,7 +70,7 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
         from device import get_device_id
         device_id = get_device_id()
         
-        url = TMP_PROXY_API_URL if is_tmp else PROXY_API_URL
+        url = config.TMP_PROXY_API_URL if is_tmp else config.PROXY_API_URL
         
         # 构造请求数据
         payload = {
@@ -150,9 +150,9 @@ def send_heartbeat():
         
     try:
         # 心跳请求非常频繁，我们仅在失败时记录详细信息，成功时仅记录一次简单汇总
-        response = requests.post(HEARTBEAT_API_URL, json=payload, headers=headers, timeout=10)
+        response = requests.post(config.HEARTBEAT_API_URL, json=payload, headers=headers, timeout=10)
         if response.status_code != 200:
-             logger.warning(f"Outbound Heartbeat Response failed: POST {HEARTBEAT_API_URL}, Status: {response.status_code}")
+             logger.warning(f"Outbound Heartbeat Response failed: POST {config.HEARTBEAT_API_URL}, Status: {response.status_code}")
              return False
         return True
     except Exception as e:
@@ -178,7 +178,10 @@ def heartbeat_loop():
                      CLOUD_AUTH_INFO['company_id'] = user_info.get('companyid')
                      CLOUD_AUTH_INFO['user_id'] = user_info.get('userid')
                      CLOUD_AUTH_INFO['account'] = user_info.get('email')
-                     logger.info(f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}")
+                     # 根据集群地区切换云端服务地址
+                     cluster = user_info.get('cluster', 'oversea')
+                     config.update_cloud_urls(cluster)
+                     logger.info(f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}, Cluster: {cluster}")
                 else:
                     # 获取失败，等待一段时间重试
                     time.sleep(5)

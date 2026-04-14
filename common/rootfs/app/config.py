@@ -23,11 +23,40 @@ SCRIPT_DIR = APP_DIR
 
 # Haddons API 地址
 HADDONS_API_BASE_URL = os.getenv('HADDONS_API_BASE_URL', "http://127.0.0.1:8099")
-# 云端服务地址
-CLOUD_API_BASE_URL = "https://euhome.linklinkiot.com/sfsaas/api"
-HEARTBEAT_API_URL = "https://euadmin.linklinkiot.com/frpserver/api/heartbeat"
-PROXY_API_URL = "https://euadmin.linklinkiot.com/frpserver/api/proxy"
-TMP_PROXY_API_URL = "https://euadmin.linklinkiot.com/frpserver/api/tmp-proxy"
+# ================= 集群配置 =================
+# 集群地区映射（china: 国内, oversea: 海外）
+CLUSTER_DOMAINS = {
+    'china': {
+        'home': 'https://home.linklinkiot.com',
+        'admin': 'https://admin.linklinkiot.com',
+    },
+    'oversea': {
+        'home': 'https://euhome.linklinkiot.com',
+        'admin': 'https://euadmin.linklinkiot.com',
+    },
+}
+
+# 当前集群（默认海外）
+CURRENT_CLUSTER = 'oversea'
+
+def update_cloud_urls(cluster='oversea'):
+    """根据集群地区更新云端服务地址"""
+    global CURRENT_CLUSTER, CLOUD_API_BASE_URL, HEARTBEAT_API_URL, PROXY_API_URL, TMP_PROXY_API_URL
+    if cluster not in CLUSTER_DOMAINS:
+        cluster = 'oversea'
+    CURRENT_CLUSTER = cluster
+    domains = CLUSTER_DOMAINS[cluster]
+    CLOUD_API_BASE_URL = f"{domains['home']}/sfsaas/api"
+    HEARTBEAT_API_URL = f"{domains['admin']}/frpserver/api/heartbeat"
+    PROXY_API_URL = f"{domains['admin']}/frpserver/api/proxy"
+    TMP_PROXY_API_URL = f"{domains['admin']}/frpserver/api/tmp-proxy"
+
+# 云端服务地址（初始化为默认集群）
+CLOUD_API_BASE_URL = ""
+HEARTBEAT_API_URL = ""
+PROXY_API_URL = ""
+TMP_PROXY_API_URL = ""
+update_cloud_urls(CURRENT_CLUSTER)
 
 # 代理目标IP (默认为 127.0.0.1，Docker Bridge 模式下应通过环境变量覆盖为 host.docker.internal)
 TARGET_IP = os.getenv('TARGET_IP', "127.0.0.1")
