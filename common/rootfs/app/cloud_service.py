@@ -4,7 +4,6 @@ import time
 import os
 import json
 import config
-from utils import enc_password
 from device import get_device_id
 
 logger = logging.getLogger(__name__)
@@ -18,55 +17,16 @@ CLOUD_AUTH_INFO = {
     'account': None
 }
 
-def cloud_login(email, password):
-    """
-    调用云端登录接口获取companyid和userid
-    """
-    try:
-        api_url = f"{config.CLOUD_API_BASE_URL}/user/pwdlogin"
-        encrypted_password = enc_password(password)
-        
-        payload = {
-            'email': email,
-            'password': encrypted_password
-        }
-        
-        logger.info(f"Outbound Request: POST {api_url}, Payload: {{'email': '{email}', 'password': '***'}}")
-        response = requests.post(api_url, json=payload, timeout=30)
-        logger.info(f"Outbound Response: POST {api_url}, Status: {response.status_code}")
-        
-        if response.status_code == 200:
-            data = response.json()
-            status = data.get('status')
-            
-            if status == 0 or status == "0":
-                info = data.get('info', {})
-                company_id = info.get('companyid')
-                user_id = info.get('userid')
-                
-                if company_id and user_id:
-                    CLOUD_AUTH_INFO['company_id'] = company_id
-                    CLOUD_AUTH_INFO['user_id'] = user_id
-                    CLOUD_AUTH_INFO['account'] = email
-                    logger.info(f"Cloud login successful. UserID: {user_id}")
-                    return True
-                else:
-                    logger.error("Cloud login response missing companyid or userid")
-            else:
-                msg = data.get('msg') or data.get('message')
-                logger.error(f"Cloud login failed: {msg} (status: {status})")
-        else:
-            logger.error(f"Cloud login failed with HTTP {response.status_code}")
-            
-    except Exception as e:
-        logger.error(f"Cloud login exception: {str(e)}")
-    
-    return False
 def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
     """
     向云端注册 frp 代理
     """
     try:
+        # userid 为必传字段，拿不到直接报错
+        if not CLOUD_AUTH_INFO.get('user_id'):
+            logger.error("Cloud registration aborted: userid not available")
+            return None, "userid not available"
+
         from device import get_device_id
         device_id = get_device_id()
         
@@ -84,14 +44,12 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
         if not is_tmp:
             payload["heartbeat"] = 1
 
-        # 构造头部
+        # 构造头部（companyid、userid 为必传字段）
         headers = {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "companyid": str(CLOUD_AUTH_INFO.get('company_id') or '1dda5816c83d32da73e209540ecbedaf'),
+            "userid": str(CLOUD_AUTH_INFO['user_id'])
         }
-        if CLOUD_AUTH_INFO.get('company_id'):
-            headers["companyid"] = str(CLOUD_AUTH_INFO['company_id'])
-        if CLOUD_AUTH_INFO.get('user_id'):
-            headers["userid"] = str(CLOUD_AUTH_INFO['user_id'])
         
         if force:
             headers["register-force"] = "true"
@@ -130,7 +88,9 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
 
 def send_heartbeat():
     """发送心跳到云端"""
-    if not CLOUD_AUTH_INFO['device_id']:
+    if not CLOUD_AUTH_INFO.get('device_id'):
+        return False
+    if not CLOUD_AUTH_INFO.get('user_id'):
         return False
         
     # 检查frpc是否运行
@@ -142,11 +102,11 @@ def send_heartbeat():
         'running': frpc_running
     }
     
-    headers = {}
-    if CLOUD_AUTH_INFO['company_id']:
-        headers['companyid'] = str(CLOUD_AUTH_INFO['company_id'])
-    if CLOUD_AUTH_INFO['user_id']:
-        headers['userid'] = str(CLOUD_AUTH_INFO['user_id'])
+    # companyid、userid 为必传字段
+    headers = {
+        'companyid': str(CLOUD_AUTH_INFO.get('company_id') or '1dda5816c83d32da73e209540ecbedaf'),
+        'userid': str(CLOUD_AUTH_INFO['user_id'])
+    }
         
     try:
         # 心跳请求非常频繁，我们仅在失败时记录详细信息，成功时仅记录一次简单汇总
