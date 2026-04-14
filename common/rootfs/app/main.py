@@ -11,7 +11,7 @@ from config import (
     SESSION_COOKIE_HTTPONLY, SESSION_COOKIE_SAMESITE
 )
 from frpc_service import start_frpc
-from cloud_service import heartbeat_loop, CLOUD_AUTH_INFO
+from cloud_service import heartbeat_loop
 from web_routes import web_bp
 
 # 初始化日志
@@ -51,10 +51,12 @@ if __name__ == '__main__':
     def wait_for_auth(timeout=120):
         """等待认证信息就绪，最多等待 timeout 秒"""
         logger.info("等待云端认证信息...")
+        from ieg_auth import get_current_user_info
         start = time.time()
         while time.time() - start < timeout:
-            if CLOUD_AUTH_INFO.get('user_id') and CLOUD_AUTH_INFO.get('company_id'):
-                logger.info(f"认证信息就绪: UserID={CLOUD_AUTH_INFO['user_id']}")
+            user_info = get_current_user_info()
+            if isinstance(user_info, dict) and user_info.get('userid'):
+                logger.info(f"认证信息就绪: UserID={user_info['userid']}")
                 return True
             time.sleep(3)
         logger.error(f"等待认证超时（{timeout}秒），跳过自动注册")

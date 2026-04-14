@@ -9,48 +9,23 @@ from device import get_device_id
 logger = logging.getLogger(__name__)
 
 
-# 全局变量存储云端认证信息
-CLOUD_AUTH_INFO = {
-    'company_id': None,
-    'user_id': None,
-    'device_id': None,
-    'account': None
-}
-
-def ensure_auth_info():
-    """确保获取到用户信息，如果没有就从本地 ieg_auth 实时获取"""
-    if CLOUD_AUTH_INFO.get('user_id'):
-        return True
-        
-    try:
-        from ieg_auth import get_current_user_info
-        user_info = get_current_user_info()
-        
-        if isinstance(user_info, dict) and user_info.get('userid'):
-            CLOUD_AUTH_INFO['company_id'] = user_info.get('companyid')
-            CLOUD_AUTH_INFO['user_id'] = user_info.get('userid')
-            CLOUD_AUTH_INFO['account'] = user_info.get('email')
-            # 根据集群地区切换云端服务地址
-            cluster = user_info.get('cluster', 'oversea')
-            config.update_cloud_urls(cluster)
-            logger.info(f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}, Cluster: {cluster}")
-            return True
-        return False
-    except Exception as e:
-        logger.error(f"Failed to fetch auth info from iEG service: {e}")
-        return False
 
 def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
     """
     向云端注册 frp 代理
     """
     try:
-        # 注册前确保拿到了用户信息
-        if not ensure_auth_info():
-            logger.error("Cloud registration aborted: userid not available (not logged in)")
-            return None, "userid not available"
-
+        from ieg_auth import get_current_user_info
         from device import get_device_id
+        
+        user_info = get_current_user_info()
+        if not isinstance(user_info, dict) or not user_info.get('userid'):
+            logger.error("Cloud registration aborted: userid not available (not logged in)")
+            return None, "user not logged in"
+
+        # 根据集群地区切换云端服务地址
+        cluster = user_info.get('cluster', 'oversea')
+        config.update_cloud_urls(cluster)
         device_id = get_device_id()
         
         url = config.TMP_PROXY_API_URL if is_tmp else config.PROXY_API_URL
@@ -60,7 +35,7 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
             "did": device_id,
             "name": "iSG-Linux",
             "type": 0,
-            "account": CLOUD_AUTH_INFO.get('account', ''),
+            "account": user_info.get('email', ''),
             "proxyList": proxy_list
         }
         
@@ -70,8 +45,8 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
         # 构造头部（companyid、userid 为必传字段）
         headers = {
             "Content-Type": "application/json",
-            "companyid": str(CLOUD_AUTH_INFO.get('company_id') or '1dda5816c83d32da73e209540ecbedaf'),
-            "userid": str(CLOUD_AUTH_INFO['user_id'])
+            "companyid": str(user_info.get('companyid') or '1dda5816c83d32da73e209540ecbedaf'),
+            "userid": str(user_info['userid'])
         }
         
         if force:
@@ -111,24 +86,34 @@ def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
 
 def send_heartbeat():
     """发送心跳到云端"""
-    if not CLOUD_AUTH_INFO.get('device_id'):
-        return False
-    if not CLOUD_AUTH_INFO.get('user_id'):
+    from ieg_auth import get_current_user_info
+    from device import get_device_id
+    from frpc_service import check_frpc_running
+    
+    user_info = get_current_user_info()
+    if not isinstance(user_info, dict) or not user_info.get('userid'):
         return False
         
-    # 检查frpc是否运行
-    from frpc_service import check_frpc_running
+    try:
+        device_id = get_device_id()
+    except Exception as e:
+        return False
+        
+    # 根据集群地区切换云端服务地址以防配置漂移
+    cluster = user_info.get('cluster', 'oversea')
+    config.update_cloud_urls(cluster)
+        
     frpc_running = check_frpc_running()
     
     payload = {
-        'did': CLOUD_AUTH_INFO['device_id'],
+        'did': device_id,
         'running': frpc_running
     }
     
     # companyid、userid 为必传字段
     headers = {
-        'companyid': str(CLOUD_AUTH_INFO.get('company_id') or '1dda5816c83d32da73e209540ecbedaf'),
-        'userid': str(CLOUD_AUTH_INFO['user_id'])
+        'companyid': str(user_info.get('companyid') or '1dda5816c83d32da73e209540ecbedaf'),
+        'userid': str(user_info['userid'])
     }
         
     try:
@@ -146,21 +131,11 @@ def heartbeat_loop():
     """后台心跳线程"""
     logger.info("Starting heartbeat loop...")
     
-    # 获取 Device ID
-    CLOUD_AUTH_INFO['device_id'] = get_device_id()
-    
     # 循环
     while True:
         try:
-            # 如果没有认证信息，尝试获取
-            if not ensure_auth_info():
-                # 获取失败，等待一段时间重试
-                time.sleep(5)
-                continue
-            
-            # 发送心跳
+            # 发送心跳 (内部实时获取状态，未获取到会静默放弃当前心跳)
             send_heartbeat()
-            
         except Exception as e:
             logger.error(f"Heartbeat loop error: {e}")
         

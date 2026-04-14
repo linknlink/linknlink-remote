@@ -16,7 +16,6 @@ from frpc_service import (
 )
 from device import get_device_id, get_primary_interface_mac
 from ieg_auth import require_login
-from cloud_service import CLOUD_AUTH_INFO
 
 # 配置日志输出到终端
 logging.basicConfig(
