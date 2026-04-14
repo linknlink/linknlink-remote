@@ -111,7 +111,15 @@ def index():
         except:
             pass
             
+    from ieg_auth import get_current_user_info
+    user_info = get_current_user_info()
+    if isinstance(user_info, dict):
+        display_name = user_info.get('nickname') or user_info.get('userid') or "Unknown User"
+    else:
+        display_name = "Not Logged In"
+
     return render_template('index.html', 
+                          display_name=display_name,
                           frpc_running=frpc_running, 
                           device_id=device_id,
                           remote_assistance=remote_assistance,
