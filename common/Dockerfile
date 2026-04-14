@@ -18,7 +18,7 @@ RUN \
     py3-cryptography \
     \
     # Install Python dependencies
-    && pip3 install --break-system-packages flask requests
+    && pip3 install --break-system-packages flask requests waitress
 
 # Set shell to bash for complex logic
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]

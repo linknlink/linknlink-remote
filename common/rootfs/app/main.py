@@ -4,7 +4,6 @@ import threading
 import os
 import time
 from flask import Flask
-from werkzeug.serving import WSGIRequestHandler
 
 from config import (
     SERVICE_DIR, DATA_DIR, TEMPLATES_DIR, 
@@ -100,16 +99,9 @@ if __name__ == '__main__':
     frpc_startup_thread.start()
     logger.info("frpc 自启动线程已启动")
 
-    # 启动 Flask 应用
+    # 启动 Flask 应用（使用 waitress 生产级 WSGI 服务器）
     logger.info("启动 Web 服务端口 8888...")
 
-    class CustomRequestHandler(WSGIRequestHandler):
-        def log(self, type, message, *args):
-            try:
-                msg = f"{self.address_string()} - - {message % args}\n"
-            except:
-                msg = f"{self.address_string()} - - {message}\n"
-            sys.stderr.write(msg)
-            sys.stderr.flush()
+    from waitress import serve
+    serve(app, host='0.0.0.0', port=8888)
 
-    app.run(host='0.0.0.0', port=8888, debug=False, request_handler=CustomRequestHandler)
