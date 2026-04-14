@@ -17,14 +17,37 @@ CLOUD_AUTH_INFO = {
     'account': None
 }
 
+def ensure_auth_info():
+    """确保获取到用户信息，如果没有就从本地 ieg_auth 实时获取"""
+    if CLOUD_AUTH_INFO.get('user_id'):
+        return True
+        
+    try:
+        from ieg_auth import get_current_user_info
+        user_info = get_current_user_info()
+        
+        if isinstance(user_info, dict) and user_info.get('userid'):
+            CLOUD_AUTH_INFO['company_id'] = user_info.get('companyid')
+            CLOUD_AUTH_INFO['user_id'] = user_info.get('userid')
+            CLOUD_AUTH_INFO['account'] = user_info.get('email')
+            # 根据集群地区切换云端服务地址
+            cluster = user_info.get('cluster', 'oversea')
+            config.update_cloud_urls(cluster)
+            logger.info(f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}, Cluster: {cluster}")
+            return True
+        return False
+    except Exception as e:
+        logger.error(f"Failed to fetch auth info from iEG service: {e}")
+        return False
+
 def register_proxy_to_cloud(proxy_list, is_tmp=False, force=False):
     """
     向云端注册 frp 代理
     """
     try:
-        # userid 为必传字段，拿不到直接报错
-        if not CLOUD_AUTH_INFO.get('user_id'):
-            logger.error("Cloud registration aborted: userid not available")
+        # 注册前确保拿到了用户信息
+        if not ensure_auth_info():
+            logger.error("Cloud registration aborted: userid not available (not logged in)")
             return None, "userid not available"
 
         from device import get_device_id
@@ -129,23 +152,11 @@ def heartbeat_loop():
     # 循环
     while True:
         try:
-            # 如果没有认证信息，尝试从本地 ieg_auth 获取
-            if not CLOUD_AUTH_INFO['user_id']:
-                from ieg_auth import get_current_user_info
-                user_info = get_current_user_info()
-                
-                if isinstance(user_info, dict) and user_info.get('userid'):
-                     CLOUD_AUTH_INFO['company_id'] = user_info.get('companyid')
-                     CLOUD_AUTH_INFO['user_id'] = user_info.get('userid')
-                     CLOUD_AUTH_INFO['account'] = user_info.get('email')
-                     # 根据集群地区切换云端服务地址
-                     cluster = user_info.get('cluster', 'oversea')
-                     config.update_cloud_urls(cluster)
-                     logger.info(f"Obtained auth info from local iEG service. UserID: {user_info.get('userid')}, Cluster: {cluster}")
-                else:
-                    # 获取失败，等待一段时间重试
-                    time.sleep(5)
-                    continue
+            # 如果没有认证信息，尝试获取
+            if not ensure_auth_info():
+                # 获取失败，等待一段时间重试
+                time.sleep(5)
+                continue
             
             # 发送心跳
             send_heartbeat()
