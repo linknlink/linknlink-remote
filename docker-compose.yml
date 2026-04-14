@@ -8,5 +8,5 @@ services:
     restart: unless-stopped
     network_mode: host
     environment:
-      HADDONS_API_BASE_URL: ${HADDONS_API_BASE_URL:-http://localhost:8099}
-      TARGET_IP: ${TARGET_IP:-localhost}
+      HADDONS_API_BASE_URL: ${HADDONS_API_BASE_URL:-http://127.0.0.1:8099}
+      TARGET_IP: ${TARGET_IP:-127.0.0.1}
