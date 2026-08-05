@@ -69,11 +69,12 @@ jobs:
         cp common/build.yaml ${{ matrix.addon }}
 
     - name: Build
-      uses: home-assistant/builder@master
+      # 2025.11.0+ removed the --armv7 flag, which this add-on still supports.
+      # Pin the last compatible builder instead of following the moving master branch.
+      uses: home-assistant/builder@2025.09.0
       # Note: if running without `--test`, image is pushed to ghcr.io
       with:
         args: |
           --${{ matrix.arch }} \
           --target ${{ matrix.addon }} \
           ${{ env.BUILD_ARGS }}
-
