@@ -4,7 +4,7 @@ Home Assistant 第三方加载项仓库，提供简单易用的远程访问解�
 
 ## 关于
 
-本仓库提供基于 LinknLink IoT 平台的 Home Assistant 远程访问服务。只需要简单的账号配置，即可让您的 Home Assistant 实例从互联网上安全访问。
+本仓库提供基于 LinknLink IoT 平台的 Home Assistant 远程访问服务。用 LinknLink 账号登录后，即可让您的 Home Assistant 实例从互联网上安全访问。
 
 ## 可用加载项
 
@@ -13,10 +13,10 @@ Home Assistant 第三方加载项仓库，提供简单易用的远程访问解�
 通过 LinknLink 平台实现 Home Assistant 远程访问的加载项。
 
 **主要特性：**
-- 零配置远程访问（只需账号密码）
-- 自动设备注册和代理配置
-- 安全的加密隧道连接
-- 支持多种架构（aarch64、amd64、armv7）
+- 远程访问免费：在加载项页面用 LinknLink 账号登录即可
+- 可选 LinknLink 云访问，按主机授权（激活码 + 审核）
+- 安全的加密隧道，自动重连
+- 支持 aarch64、amd64（2.0.0 起不再支持 armv7）
 
 [![安装加载项][addon-badge]][addon]
 
@@ -52,9 +52,9 @@ Home Assistant 第三方加载项仓库，提供简单易用的远程访问解�
 
 安装 LinknLink Remote 加载项后：
 
-1. 填写您的 LinknLink 平台账号和密码
-2. 点击启动
-3. 查看日志获取设备 ID 和连接状态
+1. 点击启动
+2. 点击 **打开网页界面**（或使用侧边栏）
+3. 使用 LinknLink 账号登录
 
 详细文档请查看 [frpc/README.md](frpc/README.md)
 
@@ -66,9 +66,11 @@ Home Assistant 第三方加载项仓库，提供简单易用的远程访问解�
 
 ### 加载项无法启动
 
-1. 检查账号和密码是否正确
-2. 查看日志中的错误信息
-3. 确认网络连接正常
+自 2.0.0 起在加载项页面登录，配置项中已没有邮箱/密码。
+
+1. 查看加载项 **日志** 页中的错误信息
+2. 确认网络连接正常
+3. 确认主机为 aarch64 或 amd64（2.0.0 起不支持 armv7）
 
 ### 更多帮助
 

@@ -1,67 +1,69 @@
-ARG BUILD_FROM
-FROM $BUILD_FROM as base
+# syntax=docker/dockerfile:1
+#
+# LinknLink Remote add-on image.
+#
+# The add-on ships prebuilt binaries only. They are published as assets of the
+# GitHub Release v<version>:
+#   linknlink-remote-frpc-<version>-<arch>.tar.gz
+# containing bin/, frp/frpc, rootfs/ and configs/.
+#
+# The download/verify/extract step runs in a stage on the *build* platform, so
+# the final (target-arch) stage needs no RUN and no qemu emulation.
+ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:7.8.3
 
-ENV LANG C.UTF-8
+FROM --platform=$BUILDPLATFORM ${BUILD_FROM} AS artifact
+ARG BUILD_ARCH
 ARG BUILD_VERSION
-ARG FRP_VERSION=0.65.0
-
-# Set shell
+ARG ARTIFACT_SHA256_AARCH64
+ARG ARTIFACT_SHA256_AMD64
+# Override for local testing, e.g. http://127.0.0.1:8000
+ARG ARTIFACT_BASE_URL=https://github.com/linknlink/linknlink-remote/releases/download
+ARG ARTIFACT_TAG=v${BUILD_VERSION}
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+RUN set -eux; \
+    case "${BUILD_ARCH}" in \
+      aarch64) sha="${ARTIFACT_SHA256_AARCH64}" ;; \
+      amd64)   sha="${ARTIFACT_SHA256_AMD64}" ;; \
+      *) echo "unsupported BUILD_ARCH=${BUILD_ARCH}" >&2; exit 1 ;; \
+    esac; \
+    name="linknlink-remote-frpc-${BUILD_VERSION}-${BUILD_ARCH}.tar.gz"; \
+    curl -fsSL --retry 3 -o "/tmp/${name}" "${ARTIFACT_BASE_URL}/${ARTIFACT_TAG}/${name}"; \
+    if [ -n "${sha}" ]; then \
+      echo "${sha}  /tmp/${name}" | sha256sum -c -; \
+    else \
+      echo "WARNING: no sha256 pinned for ${BUILD_ARCH}" >&2; \
+    fi; \
+    mkdir -p /out; \
+    tar -xzf "/tmp/${name}" -C /out; \
+    test "$(cat /out/VERSION)" = "${BUILD_VERSION}"; \
+    test -x /out/bin/remote-manager -a -x /out/frp/frpc
 
-# Install dependencies and download FRPC
-RUN \
-    apk add --no-cache \
-        curl \
-        jq \
-        util-linux \
-    && apk add --no-cache --virtual .build-dependencies \
-        wget \
-    \
-    && APK_ARCH=$(apk --print-arch) \
-    && echo "Detected architecture: ${APK_ARCH}" \
-    && FRP_ARCH=$( \
-        case "${APK_ARCH}" in \
-            x86_64) echo "amd64" ;; \
-            aarch64) echo "arm64" ;; \
-            armv7) echo "arm" ;; \
-            *) echo "unsupported" ;; \
-        esac \
-    ) \
-    && echo "FRP architecture: ${FRP_ARCH}" \
-    && if [ "${FRP_ARCH}" = "unsupported" ]; then \
-        echo "Error: Unsupported architecture: ${APK_ARCH}" && \
-        exit 1; \
-    fi \
-    && FRP_URL="https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_${FRP_VERSION}_linux_${FRP_ARCH}.tar.gz" \
-    && echo "Downloading frp v${FRP_VERSION} for ${FRP_ARCH} from: ${FRP_URL}" \
-    && wget -q --timeout=30 --tries=3 "${FRP_URL}" -O /tmp/frp.tar.gz \
-    && if [ ! -f /tmp/frp.tar.gz ] || [ ! -s /tmp/frp.tar.gz ]; then \
-        echo "Failed to download frp from ${FRP_URL}" && \
-        echo "File exists: $([ -f /tmp/frp.tar.gz ] && echo 'yes' || echo 'no')" && \
-        echo "File size: $([ -f /tmp/frp.tar.gz ] && ls -lh /tmp/frp.tar.gz | awk '{print $5}' || echo 'N/A')" && \
-        exit 1; \
-    fi \
-    && tar -xzf /tmp/frp.tar.gz -C /tmp \
-    && cp /tmp/frp_*/frpc /usr/local/bin/frpc \
-    && chmod +x /usr/local/bin/frpc \
-    && /usr/local/bin/frpc --version \
-    && rm -f -r /tmp/* \
-    && apk del --no-cache --purge \
-        .build-dependencies
+FROM ${BUILD_FROM}
 
-# Copy root filesystem
-COPY rootfs /
+ENV LANG=C.UTF-8
 
-# Build arguments
+COPY --from=artifact --chmod=0755 \
+    /out/bin/iegcloudaccess /out/bin/linknlinkedge /out/bin/ha2devicehub /out/bin/remote-manager \
+    /usr/local/bin/
+COPY --from=artifact --chmod=0755 /out/frp/frpc /opt/frpc-assets/frpc
+COPY --from=artifact --chmod=0755 /out/frp/frpc /usr/local/bin/frpc
+COPY --from=artifact /out/rootfs/ /
+COPY --from=artifact /out/configs/ /etc/linknlink/
+
+ENV IEG_CONFIG=/etc/linknlink/iegcloudaccess.toml \
+    LINKNLINKEDGE_CONFIG=/etc/linknlink/linknlinkedge.yaml \
+    HA2DEVICEHUB_CONFIG=/etc/linknlink/ha2devicehub.toml \
+    HA_AUTH_MODE=supervisor \
+    ACTIVATION_TYPE=halicense
+
 ARG BUILD_ARCH
 ARG BUILD_DATE
 ARG BUILD_DESCRIPTION
 ARG BUILD_NAME="LinknLink Remote"
 ARG BUILD_REF
-ARG BUILD_REPOSITORY
+ARG BUILD_REPOSITORY=linknlink/linknlink-remote
 ARG BUILD_VERSION
 
-# Labels
 LABEL \
     io.hass.name="${BUILD_NAME}" \
     io.hass.description="${BUILD_DESCRIPTION}" \
@@ -72,11 +74,7 @@ LABEL \
     org.opencontainers.image.description="${BUILD_DESCRIPTION}" \
     org.opencontainers.image.vendor="LinknLink" \
     org.opencontainers.image.source="https://github.com/${BUILD_REPOSITORY}" \
-    org.opencontainers.image.documentation="https://github.com/${BUILD_REPOSITORY}/blob/main/frpc/README.md" \
+    org.opencontainers.image.documentation="https://github.com/${BUILD_REPOSITORY}/blob/main/frpc/DOCS.md" \
     org.opencontainers.image.created="${BUILD_DATE}" \
     org.opencontainers.image.revision="${BUILD_REF}" \
     org.opencontainers.image.version="${BUILD_VERSION}"
-
-# Run script
-ENTRYPOINT [ "/docker-entrypoint.sh" ]
-

@@ -1,12 +1,11 @@
 ---
 configuration:
-  authentication:
-    name: Authentication
-    description: LinknLink platform credentials
-  email:
-    name: Email
-    description: Your LinknLink platform account email
-  password:
-    name: Password
-    description: Your LinknLink platform account password
-
+  log_level:
+    name: Log level
+    description: Verbosity of the add-on logs.
+  guide_url:
+    name: Guide URL
+    description: Help link shown in the add-on web UI. Leave the default unless told otherwise.
+  purchase_url:
+    name: Store URL
+    description: Store link for the cloud access activation code. Leave the default unless told otherwise.

@@ -1,187 +1,69 @@
 # Home Assistant Add-on: LinknLink Remote
 
-通过 LinknLink 平台，让您轻松实现 Home Assistant 的远程访问。
+通过 LinknLink 平台远程访问 Home Assistant，并可选开通 LinknLink 云访问。
+
+## 运行要求
+
+- **aarch64** 或 **amd64** 架构的 Home Assistant OS / Supervised 安装。
+  自 2.0.0 起不再支持 armv7（32 位 ARM，例如较老的树莓派系统）。
+- 一个 LinknLink 账号。如果还没有，请在 LinknLink App 中注册。
 
 ## 开始使用
 
-### 准备工作
+1. 安装加载项并点击 **启动**。
+2. 打开加载项页面：点击 **打开网页界面**，或开启 **在侧边栏中显示** 后使用侧边栏的 **LinknLink Remote**。
+3. 使用 LinknLink 账号（邮箱/账号和密码）**登录**。
 
-在使用本 Add-on 之前，您需要：
+远程访问到这里就完成了：加载项会把这台 Home Assistant 注册到 LinknLink 平台并保持远程隧道在线。远程访问免费。
 
-1. 拥有一个 LinknLink 平台账号（邮箱和密码）
-2. 确保 Home Assistant 正常运行
-3. 确保网络连接正常
+密码只会发送给 LinknLink 登录服务，不会保存在加载项配置中。
 
-> **提示**
-> 
-> 如果您还没有 LinknLink 账号，请使用LinknLink APP注册开通。
+## 云访问（可选）
 
-### 启用侧边栏显示（可选）
+云访问让这台 Home Assistant 接入 LinknLink 云。授权按主机进行：加载项通过 Home Assistant OS / Supervisor 上报的主网卡 MAC 地址识别主机。
 
-为了方便访问和管理，您可以将 Add-on 显示在侧边栏：
+开通步骤：
 
-1. 进入 `设置` → `加载项` → `LinknLink Remote`
-2. 开启 **在侧边栏中显示** 选项
+1. 打开加载项页面并登录。
+2. 点击 **Enable cloud access**。
+3. 在 [LinknLink 商城](https://www.linknlink.com/products/linknlink-activation-code-for-linkhub) 购买激活码，下单时无需填写设备信息。
+4. 复制 **订单号**，填入弹窗并点击 **Submit request**。
+5. 等待审核。状态卡片会先显示 *Pending*，审核通过后显示 *Activating*，一般约 15 分钟内完成激活。
+   如果申请被驳回，页面会显示驳回原因，修改订单号后可重新提交。
+
+说明：
+
+- 每个订单号只能绑定一台主机。
+- 审核通过后，该主机的云访问永久有效。
+- 授权绑定在主机主网卡上。更换该网卡或迁移到新硬件后，加载项会显示 **NIC changed**，请联系 LinknLink 客服迁移授权。
+- 云访问目前仅支持海外（EU）LinknLink 服务的账号。
 
 ## 配置
 
-### 基本配置
-
-本 Add-on 的配置非常简单，只需要提供 LinknLink 平台的登录凭据。
-
-#### 必需参数
-
-在 Add-on 配置页面中，您需要填写以下信息：
-
-- **email**: 您的 LinknLink 平台账号邮箱
-- **password**: 您的 LinknLink 平台账号密码
-
-### 配置示例
-
-#### 基本示例
+登录在加载项页面完成，一般无需任何配置。
 
 ```yaml
-authentication:
-  email: "your-email@example.com"
-  password: "your-password"
+log_level: info
 ```
 
-> **注意**
-> 
-> 密码字段在配置界面中会以密文形式显示，保护您的隐私安全。
+- **log_level**：`trace`、`debug`、`info`（默认）、`notice`、`warning`、`error`、`fatal`。
+- **guide_url** / **purchase_url**：页面中显示的帮助和商城链接，保持默认即可。
 
-## 工作原理
+## 从 1.x 升级
 
-LinknLink Remote Add-on 的工作流程：
+- 已移除 `authentication` 邮箱/密码配置项。升级后请打开加载项页面登录一次。旧配置中残留的账号密码会在首次启动时自动清除。
+- 原有设备 ID（`/data/device_id.txt`）会保留，设备在 LinknLink 平台上的身份不变。
+- armv7 设备无法升级，将停留在 1.2.2。
 
-1. **设备识别**: 启动时自动获取设备唯一标识
-2. **平台登录**: 使用您提供的账号密码登录 LinknLink 平台
-3. **代理注册**: 自动向平台注册 Home Assistant 服务（端口 8123）
-4. **建立连接**: 下载并启动 FRPC 客户端，建立反向代理隧道（端口38123）
-5. **保持在线**: 持续维护连接，确保远程访问稳定可用
+## 故障排查
 
-### 设备 ID
+- **无法登录**：先在 LinknLink App 中确认账号和密码。提示“账号不存在”表示该账号尚未注册。
+- **远程访问离线**：确认主机可以访问互联网，重启加载项并查看 **日志** 页。
+- **云访问一直显示 Activating**：审核通过后最长约 15 分钟完成激活，可在页面中点击 **Refresh**。
+- 日志中出现 **unable to resolve primary NIC MAC**：加载项无法从 Supervisor 读取主网卡，请确认主机有已连接的网卡后重启加载项。
 
-每个设备都有一个唯一的 32 位设备 ID，用于在平台上标识您的 Home Assistant 实例。
-
-设备 ID 生成规则：
-- 优先使用网络接口 MAC 地址（补齐至 32 位）
-- 如果 MAC 地址不可用，则使用 UUID
-- 作为最后手段，使用时间戳生成唯一 ID
-
-您可以在以下位置查看设备 ID：
-
-1. **日志输出**: 启动时会醒目显示
-   ```
-   ==========================================
-     设备ID (Device ID): xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-   ==========================================
-   ```
-
-## 代理配置
-
-### 默认代理规则
-
-Add-on 会自动配置以下代理规则：
-
-| 服务名称 | 本地端口 | 远程端口 | 说明 |
-|---------|---------|---------|------|
-| HomeAssistant | 8123 | 38123 | Home Assistant Web 界面 |
-
-### 网络模式
-
-本 Add-on 使用 **Host 网络模式**，这意味着：
-
-- Add-on 容器直接使用宿主机的网络
-- 可以直接访问 `127.0.0.1:8123` 的 Home Assistant 服务
-- 无需额外的网络配置或端口映射
-
-## 日志和调试
-
-### 查看日志
-
-在 Add-on 详情页面的 **日志** 标签页中，您可以看到：
-
-- 设备 ID 信息
-- 登录状态
-- 代理注册结果
-- FRPC 连接状态
-- 错误信息（如果有）
-
-### 调试级别
-
-默认情况下，日志会显示关键的运行信息。如果遇到问题，可以：
-
-1. 查看完整日志输出
-2. 检查是否有错误或警告信息
-3. 记录错误信息以便排查
-
-## 故障排除
-
-### 登录失败
-
-如果提示账号或密码错误：
-
-1. 确认邮箱和密码填写正确
-2. 检查账号是否已在 LinknLink 平台开通
-3. 联系管理员确认账号状态
-
-> **常见错误**
-> 
-> - **账号不存在（status: -46009）**: 表示该邮箱未在平台注册，请使用LinknLink APP注册账号
-> - **密码错误**: 请检查密码是否正确（注意大小写）
-
-### 连接失败
-
-如果 FRPC 无法建立连接：
-
-1. 检查网络连接是否正常
-2. 确认可以访问 `euhome.linklinkiot.com`
-3. 查看日志中的详细错误信息
-4. 尝试重启 Add-on
-
-### 代理注册失败
-
-如果代理注册返回错误：
-
-1. 确认登录成功（检查日志中的User ID）
-2. 查看完整的错误响应信息
-3. 联系技术支持
-
-
-## 高级功能
-
-### 安全性
-
-本 Add-on 在安全性方面的考虑：
-
-1. **密码加密**: 登录时密码使用 SHA1 + Salt 加密传输
-2. **HTTPS 连接**: 所有 API 调用均使用 HTTPS 加密
-3. **密文存储**: 密码在配置界面以密文形式显示
-4. **安全传输**: FRPC 连接使用加密隧道
-
-## 更新日志
-
-### v1.0.0
-
-- 首次发布
-- 支持 LinknLink 平台自动登录和注册
-- 自动配置 Home Assistant 反向代理
-
-## 技术支持
-
-如果您遇到问题：
-
-1. 查看本文档的故障排除部分
-2. 检查日志中的详细错误信息
-3. 在 [GitHub Issues](https://github.com/linknlink/linknlink-remote/issues) 提交问题
-4. 联系 LinknLink 平台技术支持
-
----
+其他问题请在 [GitHub](https://github.com/linknlink/linknlink-remote/issues) 提交 Issue 并附上加载项日志，或联系 LinknLink 客服。
 
 ## 致谢
 
-- [FRP 项目](https://github.com/fatedier/frp) - 提供反向代理核心功能
-- LinknLink IoT 平台 - 提供设备管理和代理服务
-- Home Assistant 社区 - 提供 Add-on 开发框架和支持
-
+- [frp](https://github.com/fatedier/frp) 提供隧道客户端。

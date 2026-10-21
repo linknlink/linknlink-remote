@@ -4,7 +4,7 @@ Home Assistant community add-ons that provide a simple and secure remote access 
 
 ## About
 
-This repository offers Home Assistant remote access services built on top of the LinknLink IoT platform. With a lightweight account setup, your Home Assistant instance becomes securely reachable from the Internet.
+This repository offers Home Assistant remote access services built on top of the LinknLink IoT platform. Sign in with your LinknLink account and your Home Assistant instance becomes securely reachable from the Internet.
 
 ## Available Add-ons
 
@@ -13,10 +13,10 @@ This repository offers Home Assistant remote access services built on top of the
 Home Assistant add-on that delivers remote access through the LinknLink platform.
 
 **Key highlights:**
-- Zero-configuration remote access (only account credentials required)
-- Automatic device registration and proxy provisioning
-- Secure, encrypted tunneling
-- Supports multiple architectures (aarch64, amd64, armv7)
+- Free remote access: sign in with your LinknLink account in the add-on page
+- Optional LinknLink cloud access, authorized per host (activation code + review)
+- Secure, encrypted tunneling with automatic reconnection
+- Supports aarch64 and amd64 (armv7 dropped in 2.0.0)
 
 [![Install Add-on][addon-badge]][addon]
 
@@ -52,9 +52,9 @@ Once the repository is added, locate the desired add-on in the store and click *
 
 After installing the LinknLink Remote add-on:
 
-1. Enter your LinknLink platform email and password
-2. Click **Start**
-3. Check the logs to view the device ID and connection status
+1. Click **Start**
+2. Click **Open Web UI** (or use the sidebar panel)
+3. Sign in with your LinknLink account
 
 More details: [frpc/README.md](frpc/README.md)
 
@@ -66,9 +66,12 @@ Register through the LinknLink mobile app.
 
 ### The add-on fails to start
 
-1. Verify the email and password are correct
-2. Check the logs for detailed error messages
-3. Confirm network connectivity is working
+Since 2.0.0 you sign in from the add-on page; there are no email/password options anymore.
+
+
+1. Check the add-on **Log** tab for detailed error messages
+2. Confirm network connectivity is working
+3. Make sure the host is aarch64 or amd64 (armv7 is not supported since 2.0.0)
 
 ### Need more help?
 

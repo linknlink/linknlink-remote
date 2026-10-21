@@ -1,12 +1,11 @@
 ---
 configuration:
-  authentication:
-    name: 认证配置
-    description: LinknLink 平台登录凭据
-  email:
-    name: 邮箱
-    description: 您的 LinknLink 平台账号邮箱
-  password:
-    name: 密码
-    description: 您的 LinknLink 平台账号密码
-
+  log_level:
+    name: 日志级别
+    description: 加载项日志的详细程度。
+  guide_url:
+    name: 使用指南链接
+    description: 加载项页面中显示的帮助链接，一般保持默认即可。
+  purchase_url:
+    name: 商城链接
+    description: 云访问激活码的购买链接，一般保持默认即可。

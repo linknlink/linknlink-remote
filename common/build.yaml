@@ -1,5 +1,8 @@
 build_from:
-  aarch64: ghcr.io/hassio-addons/base:18.2.1
-  amd64: ghcr.io/hassio-addons/base:18.2.1
-  armv7: ghcr.io/hassio-addons/base:18.2.1
-
+  aarch64: ghcr.io/hassio-addons/debian-base:7.8.3
+  amd64: ghcr.io/hassio-addons/debian-base:7.8.3
+args:
+  # Prebuilt artifacts attached to the GitHub Release v<version>
+  # (linknlink-remote-frpc-<version>-<arch>.tar.gz). Update on every release.
+  ARTIFACT_SHA256_AARCH64: f82ec52e10c15f5f745cf0d0b6561de2d214af87808916e399f80da35716f4c5
+  ARTIFACT_SHA256_AMD64: 09a41b0b22e82c0de73d0d5c679c9394e56dfa3ac19f184e7c5fa5279f412f4c

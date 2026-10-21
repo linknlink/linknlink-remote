@@ -64,13 +64,13 @@ jobs:
 
     - name: Prepare data folder
       run: |
-        cp -R common/rootfs ${{ matrix.addon }}
         cp common/Dockerfile ${{ matrix.addon }}
         cp common/build.yaml ${{ matrix.addon }}
 
     - name: Build
-      # 2025.11.0+ removed the --armv7 flag, which this add-on still supports.
-      # Pin the last compatible builder instead of following the moving master branch.
+      # Pinned builder (validated with the 2.x multi-stage Dockerfile).
+      # The image downloads prebuilt artifacts from the GitHub Release
+      # v<version>, so the release assets must exist before this job runs.
       uses: home-assistant/builder@2025.09.0
       # Note: if running without `--test`, image is pushed to ghcr.io
       with:

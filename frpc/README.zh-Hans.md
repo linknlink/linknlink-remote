@@ -1,119 +1,49 @@
 # Home Assistant Add-on: LinknLink Remote
 
-通过 LinknLink 平台实现 Home Assistant 的远程访问。
+通过 LinknLink 平台远程访问 Home Assistant，并可选开通 LinknLink 云访问。
+
+![支持 aarch64 架构][aarch64-shield]
+![支持 amd64 架构][amd64-shield]
 
 ## 关于
 
-LinknLink Remote 是一个简单易用的 Home Assistant 加载项，让您无需复杂配置即可实现远程访问。
+安装、启动，打开加载项页面，用 LinknLink 账号登录即可。加载项会把这台 Home Assistant 注册到 LinknLink，并保持加密的远程隧道在线，无需端口转发，也无需写 YAML。
 
-它通过与 LinknLink IoT 平台集成，自动完成设备注册、代理配置和隧道建立。您只需要提供平台账号，剩下的工作交给它来完成。
+## 功能
 
-**查看 [文档标签页](#) 了解更多详细信息。**
+- 使用 LinknLink 账号登录后，**远程访问免费**
+- **在加载项页面登录**（Home Assistant Ingress / 侧边栏），配置项中不再保存账号密码
+- **可选云访问**，按主机授权：在 [LinknLink 商城](https://www.linknlink.com/products/linknlink-activation-code-for-linkhub) 购买激活码，在加载项页面提交订单号，等待审核
+- 自动重连，页面中可直接查看状态
 
-## 功能特性
-
-- ✅ **零配置远程访问** - 只需账号密码，自动完成所有设置
-- 🔐 **安全连接** - 使用加密隧道和 HTTPS 通信
-- 🚀 **自动化管理** - 自动设备识别、注册和代理配置
-- 📱 **多平台支持** - 支持 aarch64、amd64、armv7 等多种架构
-- 🔄 **稳定可靠** - 自动重连机制，确保服务持续可用
-- 📊 **清晰日志** - 详细的运行日志，方便排查问题
+云访问目前仅支持海外（EU）LinknLink 账号。
 
 ## 安装
 
-### 添加仓库
+1. 进入 **设置** → **加载项** → **加载项商店**
+2. 右上角菜单（⋮）→ **仓库**，添加 `https://github.com/linknlink/linknlink-remote`
+3. 安装 **LinknLink Remote** 并点击 **启动**
+4. 点击 **打开网页界面**（或开启 **在侧边栏中显示**）后登录
 
-1. 打开 Home Assistant
-2. 进入 **设置** → **加载项** → **加载项商店**
-3. 点击右上角菜单（⋮）→ **仓库**
-4. 添加此仓库 URL：
-   ```
-   https://github.com/linknlink/linknlink-remote
-   ```
-5. 点击 **添加**
-
-### 安装 Add-on
-
-1. 在加载项商店中找到 **LinknLink Remote**
-2. 点击进入 Add-on 详情页
-3. 点击 **安装** 按钮
-4. 等待安装完成
-
-## 配置
-
-安装完成后，需要配置您的 LinknLink 平台账号：
-
-### 必需配置
-
-```yaml
-authentication:
-  email: "your-email@example.com"
-  password: "your-password"
-```
-
-**配置说明：**
-
-- **email**: 您的 LinknLink 平台账号邮箱
-- **password**: 您的 LinknLink 平台账号密码
-
-> **注意**：如果您还没有 LinknLink 账号，请使用LinknLink APP注册开通。
-
-### 可选配置
-
-```yaml
-log_level: info
-```
-
-- **log_level**: 控制加载项输出的日志详细程度，可选值包括 `trace`、`debug`、`info`、`notice`、`warning`、`error`、`fatal`，默认值为 `info`。
-
-### 启动 Add-on
-
-1. 填写配置后，点击 **保存**
-2. 返回 **信息** 标签页
-3. 点击 **启动** 按钮
-4. 查看 **日志** 确认运行状态
-
-## 使用
-
-启动后，Add-on 会自动：
-
-1. 获取设备唯一标识
-2. 登录 LinknLink 平台
-3. 注册 Home Assistant 代理服务
-4. 建立远程访问隧道
-
-您可以在日志中看到设备 ID 和连接状态。
-
-**默认代理配置：**
-
-- **服务名称**: HomeAssistant
-- **本地端口**: 8123
-- **远程端口**: 38123
+云访问、升级说明和故障排查请查看 **文档** 标签页。
 
 ## 支持的架构
 
-- `aarch64` - ARM 64位（如树莓派 4）
-- `amd64` - x86_64（大多数 PC 和服务器）
-- `armv7` - ARM 32位（较旧的 ARM 设备）
+- `aarch64` - ARM 64 位（如树莓派 4/5、Home Assistant Green/Yellow）
+- `amd64` - x86_64（大多数 PC、NUC 和虚拟机）
 
-## 文档
+自 2.0.0 起不再支持 armv7，armv7 设备将停留在 1.2.2。
 
-详细文档请查看 **文档** 标签页，包含：
+## 从 1.x 升级
 
-- 完整的配置指南
-- 工作原理说明
-- 故障排除方法
-- 常见问题解答
+已移除邮箱/密码配置项。升级后请打开加载项页面登录一次。详见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 支持
 
-遇到问题？
+- [GitHub Issues](https://github.com/linknlink/linknlink-remote/issues)
+- LinknLink 客服
 
-- 📖 查看 [文档标签页](#) 中的故障排除部分
-- 🐛 在 [GitHub](https://github.com/linknlink/linknlink-remote/issues) 提交 Issue
-- 💬 联系 LinknLink 技术支持
+本加载项使用 [frp](https://github.com/fatedier/frp) 作为隧道客户端。
 
-## 致谢
-
-本 Add-on 基于 [FRP](https://github.com/fatedier/frp) 项目构建。
-
+[aarch64-shield]: https://img.shields.io/badge/aarch64-yes-green.svg
+[amd64-shield]: https://img.shields.io/badge/amd64-yes-green.svg
