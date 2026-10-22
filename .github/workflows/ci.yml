@@ -4,6 +4,12 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      force:
+        description: 'Overwrite an image tag that is already published on ghcr.io (dangerous; default off)'
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   variables:
@@ -62,12 +68,43 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Check if version is already published
+      # Published version tags are immutable: never re-push an existing
+      # <image>:<version>. Skip build+push for this arch instead of failing.
+      # Only a manual workflow_dispatch with force=true may overwrite.
+      id: published
+      if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/')) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+      env:
+        FORCE: ${{ github.event_name == 'workflow_dispatch' && inputs.force == true }}
+      run: |
+        version=$(jq -r '.version' ./${{ matrix.addon }}/config.json)
+        image=$(jq -r '.image' ./${{ matrix.addon }}/config.json | sed "s/{arch}/${{ matrix.arch }}/")
+        ref="${image}:${version}"
+        if out=$(docker manifest inspect "$ref" 2>&1); then
+          if [ "$FORCE" = "true" ]; then
+            echo "::warning::${ref} already exists on the registry; force=true, it WILL be overwritten"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::${ref} already published; skipping build and push (published tags are never overwritten)"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+        elif echo "$out" | grep -qiE 'manifest unknown|no such manifest|not found'; then
+          echo "${ref} not published yet; will build and push"
+          echo "skip=false" >> "$GITHUB_OUTPUT"
+        else
+          echo "$out"
+          echo "::error::Could not determine whether ${ref} exists; refusing to push to avoid overwriting a published tag"
+          exit 1
+        fi
+
     - name: Prepare data folder
+      if: steps.published.outputs.skip != 'true'
       run: |
         cp common/Dockerfile ${{ matrix.addon }}
         cp common/build.yaml ${{ matrix.addon }}
 
     - name: Build
+      if: steps.published.outputs.skip != 'true'
       # Pinned builder (validated with the 2.x multi-stage Dockerfile).
       # The image downloads prebuilt artifacts from the GitHub Release
       # v<version>, so the release assets must exist before this job runs.
