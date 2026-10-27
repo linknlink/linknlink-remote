@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.3
+
+- **`/cloudaccess/info` fills account fields:** when a LinknLink account is
+  signed in, the response now includes `userid` and `username` (nickname when
+  set, otherwise the login account). Both clear after logout. `devtype` remains
+  `"HAOS"`.
+
+
 ## 2.0.2
 
 - **Device type in `/cloudaccess/info`:** the response now includes
