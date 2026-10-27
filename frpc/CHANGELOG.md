@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.5
+
+- **ha2devicehub WebSocket id_reuse fix:** outbound Home Assistant WebSocket
+  command ids are now assigned and queued atomically, and stale write-queue
+  messages are drained on reconnect. This stops intermittent
+  `id_reuse` / "Identifier values have to increase" failures when refreshing
+  the device registry after connect or reconnect.
+
+
 ## 2.0.4
 
 - **Boot cloud-connect auto-retry:** if the initial cloud uplink handshake fails

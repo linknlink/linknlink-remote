@@ -1,6 +1,6 @@
 {
   "name": "LinknLink Remote",
-  "version": "2.0.4",
+  "version": "2.0.5",
   "slug": "frpc",
   "description": "Remote access to Home Assistant through LinknLink, plus optional LinknLink cloud access.",
   "url": "https://github.com/linknlink/linknlink-remote",
