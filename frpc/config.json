@@ -1,6 +1,6 @@
 {
   "name": "LinknLink Remote",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "slug": "frpc",
   "description": "Remote access to Home Assistant through LinknLink, plus optional LinknLink cloud access.",
   "url": "https://github.com/linknlink/linknlink-remote",
@@ -27,8 +27,16 @@
     "guide_url": "url?",
     "purchase_url": "url?"
   },
-  "ports": {},
-  "ports_description": {},
+  "ports": {
+    "1691/tcp": 1691,
+    "1692/tcp": 1692,
+    "1696/tcp": 1696
+  },
+  "ports_description": {
+    "1691/tcp": "ha2devicehub API (LAN app access)",
+    "1692/tcp": "iegcloudaccess API (LAN app access)",
+    "1696/tcp": "linknlinkedge API and WebSocket (LAN app access)"
+  },
   "map": [
     "ssl:ro"
   ],

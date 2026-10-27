@@ -15,6 +15,7 @@
 - **在加载项页面登录**（Home Assistant Ingress / 侧边栏），配置项中不再保存账号密码
 - **可选云访问**，按主机授权：在 [LinknLink 商城](https://www.linknlink.com/products/linknlink-activation-code-for-linkhub) 购买激活码，在加载项页面提交订单号，等待审核
 - 自动重连，页面中可直接查看状态
+- **局域网端口给 LinknLink App 使用**（`1691` / `1692` / `1696`），方便 App 在局域网直连本机
 
 云访问目前仅支持海外（EU）LinknLink 账号。
 

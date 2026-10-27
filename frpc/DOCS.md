@@ -51,6 +51,20 @@ Notes:
 - Cloud access is currently available for accounts on the overseas (EU)
   LinknLink service only.
 
+## LAN access for the LinknLink app (optional)
+
+From 2.0.1 the add-on can expose three host ports so the LinknLink mobile app
+can talk to this Home Assistant on the local network:
+
+| Host port | Service |
+|-----------|---------|
+| `1691` | ha2devicehub API |
+| `1692` | iegcloudaccess API |
+| `1696` | linknlinkedge API / WebSocket |
+
+In the add-on **Configuration → Network**, map those ports (defaults already
+match). They are not required for remote access or cloud access.
+
 ## Configuration
 
 Login happens in the web UI, so normally nothing needs to be configured.

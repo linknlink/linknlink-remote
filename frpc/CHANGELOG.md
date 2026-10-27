@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.0.1
+
+- **LAN ports for the LinknLink app:** host ports `1691` (ha2devicehub), `1692`
+  (iegcloudaccess) and `1696` (linknlinkedge) are exposed so the mobile app can
+  talk to the add-on on the local network.
+- **App account sync:** the add-on accepts the same app-sync flow as HomeClaw, so
+  the LinknLink app can bind / refresh the signed-in account over LAN.
+- **SQLite fixes** for state list and upsert (`/linknlinkedge/api/states` no
+  longer fails with MySQL-only `FORCE INDEX` / `ON DUPLICATE KEY` SQL).
+- **SQLite stability:** busy timeout, WAL mode and a single writer connection
+  to reduce intermittent `database is locked` errors under concurrent writes.
+
 ## 2.0.0
 
 Major rewrite. Please read before upgrading.

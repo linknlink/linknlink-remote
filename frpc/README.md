@@ -21,6 +21,7 @@ remote tunnel online. No port forwarding, no YAML.
   [LinknLink store](https://www.linknlink.com/products/linknlink-activation-code-for-linkhub),
   submit the order number in the add-on page and wait for review
 - Automatic reconnection and clear status in the web UI
+- **LAN ports for the LinknLink app** (`1691` / `1692` / `1696`) so the app can reach this Home Assistant on the local network
 
 Cloud access is currently available for overseas (EU) LinknLink accounts only.
 

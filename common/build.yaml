@@ -4,5 +4,5 @@ build_from:
 args:
   # Prebuilt artifacts attached to the GitHub Release v<version>
   # (linknlink-remote-frpc-<version>-<arch>.tar.gz). Update on every release.
-  ARTIFACT_SHA256_AARCH64: cf58c7f0919f32e3e410065ce81d8d82faed9df6d84f9bfde5968d6e9bb7393b
-  ARTIFACT_SHA256_AMD64: 21b8de9711f741a8fd026df8f796882832a74bade489894125d9bc7d85a54e54
+  ARTIFACT_SHA256_AARCH64: 81c657777d3042a9132f053c42ffa7aa6ae404af2de84b99e21cdd45b76911f8
+  ARTIFACT_SHA256_AMD64: 75baf76007790f9ef1f4a4b34946f2dad88b8d3571e13690fa73833c07397165
