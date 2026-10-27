@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.0.4
+
+- **Boot cloud-connect auto-retry:** if the initial cloud uplink handshake fails
+  at add-on start, the add-on now retries automatically (15s → 30s → 60s → 2m →
+  4m, then every 5m) until connected, or until there is no signed-in account /
+  auto-connect is off. `/cloudaccess/info` may show `connection.state` of
+  `connecting`, `failed`, `retry_wait` (with next retry time), or `connected`.
+
+
 ## 2.0.3
 
 - **`/cloudaccess/info` fills account fields:** when a LinknLink account is
