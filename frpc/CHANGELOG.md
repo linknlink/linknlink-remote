@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.2
+
+- **Device type in `/cloudaccess/info`:** the response now includes
+  `"devtype": "HAOS"` so the LinknLink app can recognise this add-on as a
+  Home Assistant host (rather than HomeClaw) and pick the matching LAN APIs.
+
 ## 2.0.1
 
 - **LAN ports for the LinknLink app:** host ports `1691` (ha2devicehub), `1692`
