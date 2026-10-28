@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.0.6
+
+- **Stable device identity (bindmac):** cloud-access MAC authentication and
+  remote-access registration now use the same immutable MAC, taken once from
+  the host primary network interface reported by the Supervisor and persisted
+  in `/data`. Existing installs migrate automatically on upgrade: the device id
+  is rewritten, the device re-registers, and the stale previous registration is
+  removed in the background (retried with back-off until it succeeds; paused
+  while signed out). No manual step is needed.
+- **Default remote proxies:** besides Home Assistant, the add-on LAN services
+  on ports 1691, 1692 and 1696 and the remote manager are now exposed through
+  the remote tunnel by default. Existing installs pick this up automatically.
+- **`/cloudaccess/info` no longer returns the AES key** in its LAN response.
+- **ha2devicehub:** device/entity registry queries are coalesced so bursts of
+  Home Assistant events no longer flood the WebSocket write queue.
+
 ## 2.0.5
 
 - **ha2devicehub WebSocket id_reuse fix:** outbound Home Assistant WebSocket
